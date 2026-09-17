@@ -1,0 +1,21 @@
+{
+  "schema": "vetticonfig-holidays-1",
+  "country": "MX",
+  "countryName": { "pt-BR": "México", "en": "Mexico", "es-LA": "México" },
+  "holidays": [
+    { "id": "mx-newyear",       "name": { "pt-BR": "Ano Novo", "en": "New Year's Day", "es-LA": "Año Nuevo" },
+      "month": 1, "day": 1 },
+    { "id": "mx-constitucion",  "name": { "pt-BR": "Dia da Constituição", "en": "Constitution Day", "es-LA": "Día de la Constitución" },
+      "mobile": "mx-constitution" },
+    { "id": "mx-benito-juarez", "name": { "pt-BR": "Natalício de Benito Juárez", "en": "Benito Juárez's Birth", "es-LA": "Natalicio de Benito Juárez" },
+      "mobile": "mx-juarez" },
+    { "id": "mx-labour",        "name": { "pt-BR": "Dia do Trabalho", "en": "Labour Day", "es-LA": "Día del Trabajo" },
+      "month": 5, "day": 1 },
+    { "id": "mx-independencia", "name": { "pt-BR": "Independência", "en": "Independence Day", "es-LA": "Día de la Independencia" },
+      "month": 9, "day": 16 },
+    { "id": "mx-revolucion",    "name": { "pt-BR": "Revolução Mexicana", "en": "Mexican Revolution", "es-LA": "Revolución Mexicana" },
+      "mobile": "mx-revolution" },
+    { "id": "mx-christmas",     "name": { "pt-BR": "Natal", "en": "Christmas", "es-LA": "Navidad" },
+      "month": 12, "day": 25 }
+  ]
+}

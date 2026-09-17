@@ -1,0 +1,31 @@
+{
+  "schema": "vetticonfig-holidays-1",
+  "country": "PY",
+  "countryName": { "pt-BR": "Paraguai", "en": "Paraguay", "es-LA": "Paraguay" },
+  "holidays": [
+    { "id": "py-newyear",       "name": { "pt-BR": "Ano Novo", "en": "New Year's Day", "es-LA": "Año Nuevo" },
+      "month": 1, "day": 1 },
+    { "id": "py-heroes",        "name": { "pt-BR": "Dia dos Heróis", "en": "Heroes' Day", "es-LA": "Día de los Héroes" },
+      "month": 3, "day": 1 },
+    { "id": "py-holy-thursday", "name": { "pt-BR": "Quinta-feira Santa", "en": "Holy Thursday", "es-LA": "Jueves Santo" },
+      "mobile": "easter-3" },
+    { "id": "py-good-friday",   "name": { "pt-BR": "Sexta-feira Santa", "en": "Good Friday", "es-LA": "Viernes Santo" },
+      "mobile": "easter-2" },
+    { "id": "py-labour",        "name": { "pt-BR": "Dia do Trabalho", "en": "Labour Day", "es-LA": "Día del Trabajador" },
+      "month": 5, "day": 1 },
+    { "id": "py-independencia1","name": { "pt-BR": "Independência (1º dia)", "en": "Independence Day", "es-LA": "Día de la Independencia" },
+      "month": 5, "day": 14 },
+    { "id": "py-independencia2","name": { "pt-BR": "Independência (2º dia)", "en": "Independence Day", "es-LA": "Día de la Independencia" },
+      "month": 5, "day": 15 },
+    { "id": "py-chaco",         "name": { "pt-BR": "Paz do Chaco", "en": "Chaco Peace", "es-LA": "Día de la Paz del Chaco" },
+      "month": 6, "day": 12 },
+    { "id": "py-asuncion",      "name": { "pt-BR": "Fundação de Assunção", "en": "Founding of Asunción", "es-LA": "Fundación de Asunción" },
+      "month": 8, "day": 15 },
+    { "id": "py-boqueron",      "name": { "pt-BR": "Vitória de Boquerón", "en": "Battle of Boquerón", "es-LA": "Día de la Victoria de Boquerón" },
+      "month": 9, "day": 29 },
+    { "id": "py-caacupe",       "name": { "pt-BR": "Virgem de Caacupé", "en": "Virgin of Caacupé", "es-LA": "Día de la Virgen de Caacupé" },
+      "month": 12, "day": 8 },
+    { "id": "py-christmas",     "name": { "pt-BR": "Natal", "en": "Christmas", "es-LA": "Navidad" },
+      "month": 12, "day": 25 }
+  ]
+}

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:;">
+  <title>VettiConfig — Configurações</title>
+  <link href="../vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <link href="../assets/fonts/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="../css/vetticonfig.css" rel="stylesheet">
+  <link rel="preload" href="../i18n/pt-BR.json" as="fetch" type="application/json" crossorigin>
+  <script src="../i18n/vetticonfig-i18n.js" defer></script>
+
+  <script>try{if(localStorage.getItem('vc_theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(_){}</script>
+  <style>
+    #vcSplash{position:fixed;inset:0;z-index:9999;background:#EEF0F3;display:flex;align-items:center;justify-content:center;transition:opacity .35s ease}
+    html[data-theme="dark"] #vcSplash{background:#131820}
+    #vcSplash.vc-splash-hidden{opacity:0;pointer-events:none}
+    #vcSplashMark{width:132px;height:132px;border-radius:50%;background:radial-gradient(circle at center,#0076CB 0%,#003A63 70%);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 0 0 8px rgba(0,118,203,.1),0 0 0 18px rgba(0,118,203,.05),0 12px 36px rgba(0,58,99,.25);animation:vcSplashBreathe 3.2s ease-in-out infinite}
+    #vcSplashMark::before,#vcSplashMark::after{content:'';position:absolute;inset:-8px;border-radius:50%;border:2px solid #0076CB;opacity:0;animation:vcSplashPulse 2.6s ease-out infinite}
+    #vcSplashMark::after{animation-delay:1.3s}
+    #vcSplashLogo{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-style:italic;font-weight:800;color:#fff;font-size:28px;letter-spacing:4px;line-height:1}
+    @keyframes vcSplashPulse{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.55);opacity:0}}
+    @keyframes vcSplashBreathe{0%,100%{box-shadow:0 0 0 8px rgba(0,118,203,.1),0 0 0 18px rgba(0,118,203,.05),0 12px 36px rgba(0,58,99,.25)}50%{box-shadow:0 0 0 8px rgba(0,118,203,.16),0 0 0 22px rgba(0,118,203,.08),0 12px 36px rgba(0,58,99,.25)}}
+
+    /* .vc-main vira flex column pra encaixar card + footer como rows.
+       O card pega o espaço sobrando; o footer fica numa faixa de 36px
+       sem sobrepor o conteúdo. */
+    .vc-main {
+      height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    /* Card grande das Configurações (dentro do .vc-main) */
+    .vc-cfg-card {
+      background: #fff;
+      border: 1px solid #D6DCE5;
+      border-radius: 8px;
+      margin: 16px 16px 8px;
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .vc-cfg-card-header {
+      background: var(--vc-dark); color: #fff;
+      padding: 10px 18px; font-weight: 700; font-size: 16px;
+      flex: 0 0 auto;
+    }
+    /* min-height:0 é necessário num flex item que tem display:grid pra
+       que os children (aside / main) respeitem altura do pai e suas
+       overflows funcionem. Sem isso a grid expande ao tamanho do
+       conteúdo e o overflow-y do .vc-cfg-main é ignorado. */
+    .vc-cfg-card-body {
+      display: grid; grid-template-columns: 260px 1fr;
+      flex: 1 1 auto; min-height: 0;
+    }
+
+    /* Sub-sidebar interna */
+    .vc-cfg-aside {
+      background: #F2F3F5; border-right: 1px solid #D6DCE5;
+      display: flex; flex-direction: column; padding: 14px 0;
+      min-height: 0; overflow-y: auto;
+    }
+    .vc-cfg-aside-title { padding: 6px 22px 12px; font-size: 14px; font-weight: 700; color: var(--vc-text); }
+    .vc-cfg-aside-menu { flex: 1; }
+    .vc-cfg-aside-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 18px; margin: 2px 10px;
+      border-radius: 8px; color: var(--vc-text);
+      cursor: pointer; font-size: 14px;
+      border: 1px solid transparent;
+    }
+    .vc-cfg-aside-item:hover { background: rgba(0, 118, 203, .06); }
+    .vc-cfg-aside-item.active { background: #fff; border-color: #D6DCE5; }
+    .vc-cfg-aside-item i { font-size: 18px; color: var(--vc-text-muted); }
+    .vc-cfg-aside-bottom { border-top: 1px solid #D6DCE5; padding-top: 10px; }
+
+    /* Painel — min-height:0 também (mesmo motivo da .vc-cfg-card-body) */
+    .vc-cfg-main { padding: 22px 26px; overflow-y: auto; min-height: 0; }
+    .vc-cfg-panel { display: none; }
+    .vc-cfg-panel.active { display: block; }
+    .vc-cfg-section-title { font-size: 16px; font-weight: 700; color: var(--vc-text); margin-bottom: 12px; }
+
+    /* Bandeiras (Geral / Idioma) */
+    .vc-cfg-flags { display: flex; gap: 28px; flex-wrap: wrap; }
+    .vc-cfg-flag-card {
+      background: #F2F3F5; border: 1px solid #D6DCE5;
+      border-radius: 10px; padding: 14px 18px;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      cursor: pointer; transition: border-color .15s ease;
+      min-width: 130px;
+    }
+    .vc-cfg-flag-card:hover  { border-color: var(--vc-blue); }
+    .vc-cfg-flag-card.active { border-color: var(--vc-blue); box-shadow: 0 0 0 2px rgba(0,118,203,.15); }
+    .vc-cfg-flag-card .vc-lang-flag { width: 80px; height: auto; }
+    .vc-cfg-flag-card .vc-lang-flag svg { width: 100%; height: auto; }
+    .vc-cfg-flag-card span { font-size: 14px; font-weight: 500; }
+
+    /* Temas (Aparência) */
+    .vc-cfg-theme-cards { display: flex; gap: 28px; }
+    .vc-cfg-theme-card {
+      background: #fff; border: 1px solid #D6DCE5; border-radius: 8px;
+      padding: 10px 26px;
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer; font-size: 15px;
+    }
+    .vc-cfg-theme-card.active { border-color: var(--vc-blue); box-shadow: 0 0 0 2px rgba(0,118,203,.15); }
+    .vc-cfg-theme-card i { font-size: 18px; }
+
+    /* Picker de fonte (3 colunas) */
+    .vc-cfg-font-grid {
+      display: grid; grid-template-columns: 1fr 1fr 120px;
+      gap: 18px; background: var(--vc-cell);
+      border-radius: 10px; padding: 14px;
+    }
+    .vc-cfg-font-grid > div { display: flex; flex-direction: column; gap: 6px; }
+    .vc-cfg-font-grid .vc-list-box {
+      background: #fff; border: 1px solid #D6DCE5; border-radius: 6px;
+      max-height: 240px; overflow: auto; padding: 4px;
+    }
+    .vc-cfg-font-grid .vc-list-item {
+      padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 14px;
+    }
+    .vc-cfg-font-grid .vc-list-item:hover    { background: rgba(0,118,203,.08); }
+    .vc-cfg-font-grid .vc-list-item.selected { background: rgba(0,118,203,.18); }
+
+    /* Tabela padrões salvos */
+    .vc-cfg-tbl {
+      background: #fff; border: 1px solid #D6DCE5; border-radius: 6px;
+      display: grid; grid-template-rows: auto 1fr; min-height: 400px;
+    }
+    .vc-cfg-tbl-head, .vc-cfg-tbl-row { display: grid; grid-template-columns: 1fr 140px; }
+    .vc-cfg-tbl-head { font-weight: 700; padding: 8px 14px; border-bottom: 1px solid #D6DCE5; }
+    .vc-cfg-tbl-row  { padding: 8px 14px; cursor: pointer; }
+    .vc-cfg-tbl-row:hover { background: rgba(0,118,203,.05); }
+    .vc-cfg-tbl-row.selected { background: rgba(0,118,203,.12); }
+
+    /* Rodapé Brasil agora unificado em .vc-app-footer (vetticonfig.css). */
+    .vc-cfg-footer .br-flag {
+      width: 24px; height: 16px; display: inline-block;
+      background: radial-gradient(ellipse at center, #FFDF00 25%, #009C3B 25%);
+      border-radius: 2px;
+    }
+
+    /* Card "Sobre" */
+    .vc-cfg-about-card {
+      background: #F2F3F5; border: 1px solid #D6DCE5;
+      border-radius: 8px; padding: 14px 18px;
+      color: var(--vc-text); margin-bottom: 1rem;
+    }
+
+    /* ─── Tema escuro ─────────────────────────────────────────── */
+    :root[data-theme="dark"] .vc-cfg-card {
+      background: var(--vc-surface); border-color: #2C3A52;
+    }
+    :root[data-theme="dark"] .vc-cfg-aside {
+      background: var(--vc-cell); border-right-color: #2C3A52;
+    }
+    :root[data-theme="dark"] .vc-cfg-aside-title { color: var(--vc-text); }
+    :root[data-theme="dark"] .vc-cfg-aside-item { color: var(--vc-text); }
+    :root[data-theme="dark"] .vc-cfg-aside-item:hover { background: rgba(255,255,255,.05); }
+    :root[data-theme="dark"] .vc-cfg-aside-item.active {
+      background: var(--vc-surface); border-color: #2C3A52;
+    }
+    :root[data-theme="dark"] .vc-cfg-aside-item i { color: var(--vc-text-muted); }
+    :root[data-theme="dark"] .vc-cfg-aside-bottom { border-top-color: #2C3A52; }
+    :root[data-theme="dark"] .vc-cfg-section-title { color: var(--vc-text); }
+    :root[data-theme="dark"] .vc-cfg-flag-card {
+      background: var(--vc-cell); border-color: #2C3A52; color: var(--vc-text);
+    }
+    :root[data-theme="dark"] .vc-cfg-theme-card {
+      background: var(--vc-cell); border-color: #2C3A52; color: var(--vc-text);
+    }
+    :root[data-theme="dark"] .vc-cfg-font-grid .vc-list-box {
+      background: var(--vc-surface); border-color: #2C3A52; color: var(--vc-text);
+    }
+    :root[data-theme="dark"] .vc-cfg-tbl {
+      background: var(--vc-surface); border-color: #2C3A52; color: var(--vc-text);
+    }
+    :root[data-theme="dark"] .vc-cfg-tbl-head { border-bottom-color: #2C3A52; }
+    :root[data-theme="dark"] .vc-cfg-tbl-row:hover    { background: rgba(255,255,255,.04); }
+    :root[data-theme="dark"] .vc-cfg-tbl-row.selected { background: rgba(0,118,203,.25); }
+    :root[data-theme="dark"] .vc-cfg-about-card {
+      background: var(--vc-cell); border-color: #2C3A52; color: var(--vc-text);
+    }
+  </style>
+</head>
+<body>
+
+<div id="vcSplash"><div id="vcSplashMark"><span id="vcSplashLogo">VETTI</span></div></div>
+
+<button class="vc-sidebar-toggler" onclick="vcToggleSidebar()"><i class="bi bi-list"></i></button>
+<div class="vc-overlay" id="vcOverlay" onclick="vcToggleSidebar()"></div>
+
+<!-- Sidebar VETTI principal -->
+<nav class="vc-sidebar" id="vcSidebar">
+  <div class="vc-logo"><div class="vc-logo-text">VETTI</div><div class="vc-logo-line"></div></div>
+  <ul class="vc-nav" id="vcSidebarNav"></ul>
+  <div class="vc-sidebar-bottom">
+    <a class="vc-nav-link active" href="configuracoes.html">
+      <span class="vc-nav-icon"><i class="bi bi-gear-fill"></i></span>
+      <span data-i18n="nav.configuracoes">Configurações</span>
+    </a>
+  </div>
+</nav>
+
+<!-- Main: card grande com sub-sidebar + painel -->
+<div class="vc-main" style="padding:0;">
+
+  <div class="vc-cfg-card">
+    <div class="vc-cfg-card-header" data-i18n="configs.title">Configurações</div>
+
+    <div class="vc-cfg-card-body">
+
+      <!-- Sub-sidebar -->
+      <aside class="vc-cfg-aside">
+        <div class="vc-cfg-aside-menu">
+          <div class="vc-cfg-aside-title" id="vcCfgCurrentTitle" data-i18n="configs.geral">Geral</div>
+          <div class="vc-cfg-aside-item active" data-cfg-tab="vcCfgGeral">
+            <i class="bi bi-gear"></i><span data-i18n="configs.geral">Geral</span>
+          </div>
+          <div class="vc-cfg-aside-item" data-cfg-tab="vcCfgAparencia">
+            <i class="bi bi-magic"></i><span data-i18n="configs.aparencia">Aparência</span>
+          </div>
+          <div class="vc-cfg-aside-item" data-cfg-tab="vcCfgPadrao">
+            <i class="bi bi-bookmark"></i><span data-i18n="configs.padrao_fabrica">Padrão de fábrica</span>
+          </div>
+          <div class="vc-cfg-aside-item" data-cfg-tab="vcCfgAvancado">
+            <i class="bi bi-grid"></i><span data-i18n="configs.avancado">Avançado</span>
+          </div>
+        </div>
+        <div class="vc-cfg-aside-bottom">
+          <div class="vc-cfg-aside-item" data-cfg-tab="vcCfgSobre">
+            <i class="bi bi-info-circle"></i><span data-i18n="configs.sobre_vetti">Sobre o VettiConfig</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Painel principal -->
+      <main class="vc-cfg-main">
+
+        <!-- ═══ GERAL ═══ -->
+        <section class="vc-cfg-panel active" id="vcCfgGeral">
+          <div class="vc-cfg-section-title" data-i18n="configs.idioma">Idioma</div>
+          <div class="vc-cfg-flags" id="vcCfgFlags"></div>
+
+          <div class="vc-cfg-section-title mt-4" data-i18n="alarme.atualizacao">Atualização</div>
+          <a href="#" class="d-inline-flex align-items-center gap-2" style="color:var(--vc-blue);font-weight:600;" id="vcCfgBtnUpdateApp">
+            <span data-i18n="configs.baixar_atualizar">Baixar e atualizar o VettiConfig:</span>
+            <i class="bi bi-cloud-arrow-down-fill" style="font-size:22px;"></i>
+          </a>
+        </section>
+
+        <!-- ═══ APARÊNCIA ═══ -->
+        <section class="vc-cfg-panel" id="vcCfgAparencia">
+          <div class="vc-cfg-section-title" data-i18n="configs.tema_titulo">Escolher o tema de aplicativo padrão</div>
+          <div class="vc-cfg-theme-cards">
+            <button type="button" class="vc-cfg-theme-card" data-theme="light" onclick="vcCfgPickTheme('light')">
+              <i class="bi bi-brightness-high"></i>
+              <span data-i18n="configs.tema_claro">Claro</span>
+            </button>
+            <button type="button" class="vc-cfg-theme-card" data-theme="dark" onclick="vcCfgPickTheme('dark')">
+              <i class="bi bi-moon"></i>
+              <span data-i18n="configs.tema_escuro">Escuro</span>
+            </button>
+          </div>
+
+          <div class="vc-cfg-section-title mt-4" data-i18n="configs.fonte">Fonte</div>
+          <div class="vc-cfg-font-grid">
+            <div>
+              <div class="small text-muted" data-i18n="configs.selecione_fonte">Selecione a fonte</div>
+              <div class="vc-list-box" id="vcCfgFontFamily"></div>
+            </div>
+            <div>
+              <div class="small text-muted" data-i18n="configs.estilo">Estilo</div>
+              <div class="vc-list-box" id="vcCfgFontStyle"></div>
+            </div>
+            <div>
+              <div class="small text-muted" data-i18n="configs.tamanho">Tamanho</div>
+              <div class="vc-list-box" id="vcCfgFontSize"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ PADRÃO DE FÁBRICA ═══ -->
+        <section class="vc-cfg-panel" id="vcCfgPadrao">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="vc-cfg-section-title m-0" data-i18n="configs.padroes_salvos">Padrões de fábrica salvos</div>
+            <button class="vc-btn sm" type="button" id="vcCfgBtnNovoPadrao">
+              <i class="bi bi-plus-lg"></i> <span data-i18n="configs.novo_padrao">Novo padrão</span>
+            </button>
+          </div>
+
+          <div class="vc-cfg-tbl">
+            <div class="vc-cfg-tbl-head">
+              <div data-i18n="configs.nome">Nome:</div>
+              <div data-i18n="configs.data_criacao">Data da criação:</div>
+            </div>
+            <div id="vcCfgPadroesList"></div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-end mt-3">
+            <div class="small text-muted" id="vcCfgPadraoCentralInfo">
+              <span data-i18n="configs.padrao_central">Configurações padrão dessa central:</span>
+              <strong id="vcCfgPadraoCentralName">---</strong>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="vc-btn" style="background:#E05256;" type="button" id="vcCfgBtnExcluirPadrao">
+                <span data-i18n="usuario.excluir">Excluir</span>
+              </button>
+              <button class="vc-btn" type="button" id="vcCfgBtnGravarPadrao">
+                <span data-i18n="common.save">Gravar</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ AVANÇADO ═══ -->
+        <section class="vc-cfg-panel" id="vcCfgAvancado">
+          <div class="d-flex flex-column gap-2">
+            <label class="form-check"><input type="checkbox" class="form-check-input" data-par="91050000" data-par-bool><span data-i18n="configs.aceitar_beta">A central passa aceitar atualizações de firmware BETA quando disponível</span></label>
+            <!-- PAR 91100000: central armazena 0=Sim, 1=Não → label "automática" → invertido -->
+            <label class="form-check"><input type="checkbox" class="form-check-input" data-par="91100000" data-par-bool data-par-bool-invert><span data-i18n="configs.fw_auto">Atualização de firmware da central automática</span></label>
+            <!-- PAR 91250000: central armazena 0=Permitir, 1=Bloquear → label "Autorizar" → invertido -->
+            <label class="form-check"><input type="checkbox" class="form-check-input" data-par="91250000" data-par-bool data-par-bool-invert><span data-i18n="configs.autorizar_mobile">Autorizar conexão do VettiConfig mobile</span></label>
+            <label class="form-check"><input type="checkbox" class="form-check-input" data-par="91230000" data-par-bool><span data-i18n="configs.preservar_senha">Preservar senha master da central mesmo após o RESET de fábrica</span></label>
+            <label class="form-check"><input type="checkbox" class="form-check-input" id="vcCfgShowLogger"><span data-i18n="configs.exibir_logger_card">Exibir card Logger nas telas</span></label>
+          </div>
+
+          <div class="row g-2 align-items-center mt-3">
+            <div class="col-md-4"><label class="vc-label-sm" data-i18n="configs.empresa_monitor">Nome da empresa de monitoramento</label></div>
+            <div class="col-md-8"><input class="vc-input" type="text" data-par="E1100000"></div>
+          </div>
+
+          <hr class="my-4">
+
+          <div class="vc-cfg-section-title" data-i18n="configs.vettilogger">VettiLogger</div>
+
+          <label class="vc-radio-row mb-2"><input type="radio" name="vcCfgLogger" value="local" checked><span data-i18n="configs.rede_local">Rede local</span></label>
+          <div class="ms-4 mb-3">
+            <div class="row g-2 align-items-center mb-1">
+              <div class="col-md-9"><label class="vc-label-sm" data-i18n="configs.iface_eth_porta">Interface ethernet - porta UDP utilizada para enviar as informações de debug:</label></div>
+              <div class="col-md-3"><input class="vc-input" type="number" data-par-todo="logger_eth_porta"></div>
+            </div>
+            <div class="row g-2 align-items-center">
+              <div class="col-md-9"><label class="vc-label-sm" data-i18n="configs.iface_wifi_porta">Interface WiFi - porta UDP utilizada para enviar as informações de debug:</label></div>
+              <div class="col-md-3"><input class="vc-input" type="number" data-par-todo="logger_wifi_porta"></div>
+            </div>
+          </div>
+
+          <label class="vc-radio-row mb-2"><input type="radio" name="vcCfgLogger" value="remoto"><span data-i18n="configs.servidor_remoto">Servidor remoto</span></label>
+          <div class="ms-4">
+            <div class="row g-2 align-items-center mb-1">
+              <div class="col-md-2"><label class="vc-label-sm" data-i18n="sistema.url">URL:</label></div>
+              <div class="col-md-10"><input class="vc-input" type="text" data-par-todo="logger_url"></div>
+            </div>
+            <div class="row g-2 align-items-center mb-1">
+              <div class="col-md-3"><label class="vc-label-sm" data-i18n="configs.porta_eth">Porta UDP (ethernet):</label></div>
+              <div class="col-md-3"><input class="vc-input" type="number" data-par-todo="logger_remote_eth"></div>
+            </div>
+            <div class="row g-2 align-items-center mb-1">
+              <div class="col-md-3"><label class="vc-label-sm" data-i18n="configs.porta_wifi">Porta UDP (Wi-Fi):</label></div>
+              <div class="col-md-3"><input class="vc-input" type="number" data-par-todo="logger_remote_wifi"></div>
+            </div>
+            <div class="row g-2 align-items-center mb-1">
+              <div class="col-md-3"><label class="vc-label-sm" data-i18n="configs.porta_gprs">Porta UDP (GPRS):</label></div>
+              <div class="col-md-3"><input class="vc-input" type="number" data-par-todo="logger_remote_gprs"></div>
+            </div>
+            <div class="row g-2 align-items-center">
+              <div class="col-md-3"><label class="vc-label-sm" data-i18n="configs.prazo_max">Prazo máximo (em dias):</label></div>
+              <div class="col-md-3"><input class="vc-input" type="number" data-par-todo="logger_prazo"></div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <div class="vc-cfg-section-title" data-i18n="configs.comandos_especiais">Comandos especiais</div>
+          <div class="row g-2 align-items-end mb-3">
+            <div class="col-md-12"><label class="vc-label-sm" data-i18n="configs.arq_atualizacao">Nome do arquivo para atualização de firmware da central</label></div>
+            <div class="col-md-9"><input class="vc-input" type="text" id="vcCfgFwArquivo"></div>
+            <div class="col-md-3"><button class="vc-btn outline w-100" type="button" id="vcCfgBtnAtualizar"><span data-i18n="configs.atualizar">Atualizar</span></button></div>
+          </div>
+          <div class="row g-2 align-items-center">
+            <div class="col-md-9"><label class="vc-label-sm" data-i18n="configs.limpar_buffer">Limpeza do Buffer de Eventos</label></div>
+            <div class="col-md-3"><button class="vc-btn outline w-100" type="button" id="vcCfgBtnLimparBuffer"><span data-i18n="configs.limpar">Limpar</span></button></div>
+          </div>
+        </section>
+
+        <!-- ═══ SOBRE ═══ -->
+        <section class="vc-cfg-panel" id="vcCfgSobre">
+          <div class="vc-cfg-about-card">
+            <div class="vc-card-body d-flex gap-3 align-items-start">
+              <img src="../assets/images/vetticonfig-icon.png" alt="VettiConfig"
+                   style="width:64px; height:64px; flex:0 0 auto; border-radius:10px;">
+              <div>
+                <h5 data-i18n="configs.versao_label">Versão</h5>
+                <p class="m-0">
+                  <span data-i18n="configs.versao_atual">Você tem a versão</span>
+                  <strong id="vcCfgVersao">4.0.0</strong>
+                  <span data-i18n="configs.versao_atual_2">do VettiConfig.</span>
+                </p>
+                <p class="m-0">
+                  <span data-i18n="configs.versao_check">Você tem a versão mais recente. Ele foi verificado pela última vez em</span>
+                  <strong id="vcCfgVersaoCheck">---</strong>.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Rodapé "Desenvolvido no Brasil" (classe unificada .vc-app-footer) -->
+  <div class="vc-app-footer">
+    <svg viewBox="0 0 24 16" width="22" height="14" aria-hidden="true">
+      <rect width="24" height="16" fill="#009C3B"/>
+      <polygon points="12,2 22,8 12,14 2,8" fill="#FFDF00"/>
+      <circle cx="12" cy="8" r="3.2" fill="#002776"/>
+    </svg>
+    <span data-i18n="configs.feito_brasil">Desenvolvido e Produzido no Brasil</span>
+  </div>
+</div>
+
+<!-- Modal informativo -->
+<div class="vc-info-backdrop" id="vcInfoBackdrop">
+  <div class="vc-info-dialog" role="dialog" aria-modal="true" aria-labelledby="vcInfoTitle">
+    <div class="vc-info-header" id="vcInfoTitle" data-i18n="common.info">Informativo</div>
+    <div class="vc-info-body"   id="vcInfoBody">---</div>
+    <div class="vc-info-footer"><button class="vc-btn" type="button" onclick="vcCloseInfo()"><span data-i18n="common.ok">Ok</span></button></div>
+  </div>
+</div>
+
+<script src="../vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="../js/vetticonfig.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof vcRenderFullSidebar === 'function') vcRenderFullSidebar('config');
+    var t0 = Date.now();
+    VCi18n.init(function () {
+      if (typeof vcConfigsInit === 'function') vcConfigsInit();
+      var elapsed = Date.now() - t0;
+      setTimeout(vcHideSplash, Math.max(0, 350 - elapsed));
+    });
+    setTimeout(vcHideSplash, 3000);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:;">
+  <title>VettiConfig â€” Sistema</title>
+  <link href="../vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <link href="../assets/fonts/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="../css/vetticonfig.css" rel="stylesheet">
+  <link rel="preload" href="../i18n/pt-BR.json" as="fetch" type="application/json" crossorigin>
+  <script src="../i18n/vetticonfig-i18n.js" defer></script>
+
+  <script>try{if(localStorage.getItem('vc_theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(_){}</script>
+  <style>
+    #vcSplash{position:fixed;inset:0;z-index:9999;background:#EEF0F3;display:flex;align-items:center;justify-content:center;transition:opacity .35s ease}
+    html[data-theme="dark"] #vcSplash{background:#131820}
+    #vcSplash.vc-splash-hidden{opacity:0;pointer-events:none}
+    #vcSplashMark{width:132px;height:132px;border-radius:50%;background:radial-gradient(circle at center,#0076CB 0%,#003A63 70%);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 0 0 8px rgba(0,118,203,.1),0 0 0 18px rgba(0,118,203,.05),0 12px 36px rgba(0,58,99,.25);animation:vcSplashBreathe 3.2s ease-in-out infinite}
+    #vcSplashMark::before,#vcSplashMark::after{content:'';position:absolute;inset:-8px;border-radius:50%;border:2px solid #0076CB;opacity:0;animation:vcSplashPulse 2.6s ease-out infinite}
+    #vcSplashMark::after{animation-delay:1.3s}
+    #vcSplashLogo{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-style:italic;font-weight:800;color:#fff;font-size:28px;letter-spacing:4px;line-height:1}
+    @keyframes vcSplashPulse{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.55);opacity:0}}
+    @keyframes vcSplashBreathe{0%,100%{box-shadow:0 0 0 8px rgba(0,118,203,.1),0 0 0 18px rgba(0,118,203,.05),0 12px 36px rgba(0,58,99,.25)}50%{box-shadow:0 0 0 8px rgba(0,118,203,.16),0 0 0 22px rgba(0,118,203,.08),0 12px 36px rgba(0,58,99,.25)}}
+  </style>
+</head>
+<body>
+
+<div id="vcSplash"><div id="vcSplashMark"><span id="vcSplashLogo">VETTI</span></div></div>
+
+<button class="vc-sidebar-toggler" onclick="vcToggleSidebar()"><i class="bi bi-list"></i></button>
+<div class="vc-overlay" id="vcOverlay" onclick="vcToggleSidebar()"></div>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     SIDEBAR (mesma estrutura da tela Status)
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<nav class="vc-sidebar" id="vcSidebar">
+  <div class="vc-logo">
+    <div class="vc-logo-text">VETTI</div>
+    <div class="vc-logo-line"></div>
+  </div>
+
+  <ul class="vc-nav" id="vcSidebarNav"></ul>
+
+  <div class="vc-sidebar-bottom">
+    <a class="vc-nav-link" href="configuracoes.html">
+      <span class="vc-nav-icon"><i class="bi bi-gear-fill"></i></span>
+      <span data-i18n="nav.configuracoes">ConfiguraÃ§Ãµes</span>
+    </a>
+  </div>
+</nav>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     MAIN
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<div class="vc-main">
+
+  <div class="vc-topbar d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <button class="vc-btn-conn" id="vcBtnDesconectar"
+            data-i18n-title="status.desconectar_tooltip"
+            title="Encerra a sessÃ£o e volta para a tela inicial.">
+      <i class="bi bi-plug"></i>
+      <span data-i18n="status.desconectar">Desconectar</span>
+    </button>
+    <button class="vc-btn-pdf" id="vcBtnPdf"
+            data-i18n-title="status.pdf_tooltip"
+            title="Gera relatÃ³rio PDF/CSV">
+      <i class="bi bi-file-earmark-pdf"></i>
+    </button>
+  </div>
+
+  <!-- Header (mesmo da Status) -->
+  <div class="vc-header">
+    <div class="row align-items-end g-2">
+      <div class="col-lg-8 col-md-7">
+        <div class="vc-central-name" id="vcCentralName">---</div>
+        <div class="vc-central-model" id="vcCentralModel">---</div>
+      </div>
+      <div class="col-lg-4 col-md-5">
+        <div class="vc-central-ip"  id="vcCentralIp">IP: ---</div>
+        <div class="vc-central-mac" id="vcCentralMac">MAC: ---</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs do Sistema -->
+  <div class="vc-sys-tabs" role="tablist">
+    <button class="vc-sys-tab active" data-tab="vcSysContactId" type="button" data-i18n="sistema.tab_contactid">Contact ID</button>
+    <button class="vc-sys-tab"        data-tab="vcSysRede"      type="button" data-i18n="sistema.tab_rede">Rede</button>
+    <button class="vc-sys-tab"        data-tab="vcSysSupervisao" type="button" data-i18n="sistema.tab_supervisao">SupervisÃ£o</button>
+    <button class="vc-sys-tab"        data-tab="vcSysAlarme"     type="button" data-i18n="sistema.tab_alarme">Alarme</button>
+    <button class="vc-sys-tab"        data-tab="vcSysDispositivos" type="button" data-i18n="sistema.tab_dispositivos">Dispositivos</button>
+    <button class="vc-sys-tab"        data-tab="vcSysUsuario"   type="button" data-i18n="sistema.tab_usuario">UsuÃ¡rio</button>
+    <button class="vc-sys-tab"        data-tab="vcSysAgendamento" type="button" data-i18n="sistema.tab_agendamento">Agendamento</button>
+    <button class="vc-sys-tab"        data-tab="vcSysFeriados"  type="button" data-i18n="sistema.tab_feriados">Feriados</button>
+    <button class="vc-sys-tab"        data-tab="vcSysBuffer"    type="button" data-i18n="sistema.tab_buffer">Buffer</button>
+    <!-- Aba AvanÃ§ado: escondida por padrÃ£o. Aparece com Ctrl+Shift+click no header. -->
+    <button class="vc-sys-tab"        data-tab="vcSysAvancado"  type="button"
+            id="vcSysTabAvancado"
+            data-i18n="sistema.tab_avancado"
+            style="display:none;">AvanÃ§ado</button>
+  </div>
+
+  <div class="container-fluid px-3 pb-3 flex-grow-1">
+
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+         ABA 1 â€” CONTACT ID
+         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+    <div class="vc-sys-panel active" id="vcSysContactId" data-loaded="0">
+
+      <!-- Card: ConfiguraÃ§Ã£o de monitoramento -->
+      <div class="vc-contact-layout">
+        <div class="vc-contact-main">
+          <div class="vc-card mb-3 vc-contact-card" data-card="contactid-config">
+            <div class="vc-card-header" data-i18n="sistema.cid_config">Configuração de monitoramento</div>
+            <div class="vc-card-body vc-contact-card-body">
+              <section class="vc-contact-section">
+                <div class="vc-subhead" data-i18n="sistema.cid_serv1">Endereço do servidor de monitoramento 1</div>
+                <div class="vc-contact-server-grid">
+                  <label class="vc-contact-field vc-contact-field-address">
+                    <span class="vc-label-sm" data-i18n="sistema.principal">Principal:</span>
+                    <input class="vc-input" type="text" data-par="E1060000"
+                           data-i18n-title="sistema.tip_serv_principal" title="Endereço principal do software de monitoramento.">
+                  </label>
+                  <label class="vc-contact-field vc-contact-field-port">
+                    <span class="vc-label-sm" data-i18n="sistema.porta">Porta:</span>
+                    <input class="vc-input" type="number" min="1024" max="65533" data-par="B1050000" data-par-default="9018">
+                  </label>
+                </div>
+              </section>
+
+              <section class="vc-contact-section">
+                <div class="vc-subhead" data-i18n="sistema.cid_serv2">Endereço do servidor de monitoramento 2</div>
+                <div class="vc-contact-server-grid">
+                  <label class="vc-contact-field vc-contact-field-address">
+                    <span class="vc-label-sm" data-i18n="sistema.backup">Backup:</span>
+                    <input class="vc-input" type="text" data-par="E10B0000"
+                           data-i18n-title="sistema.tip_serv_backup" title="Endereço de redundância do software de monitoramento.">
+                  </label>
+                  <label class="vc-contact-field vc-contact-field-port">
+                    <span class="vc-label-sm" data-i18n="sistema.porta">Porta:</span>
+                    <input class="vc-input" type="number" min="1024" max="65533" data-par="B1090000" data-par-default="9018">
+                  </label>
+                </div>
+              </section>
+
+              <section class="vc-contact-section">
+                <label class="vc-label mb-1 d-block" data-i18n="sistema.cid_conta">Conta na empresa de monitoramento:</label>
+                <div class="vc-contact-account-row">
+                  <span class="vc-label-sm">N&ordm; conta:</span>
+                  <input class="vc-input" type="text" data-par="B1060000"
+                         data-i18n-title="sistema.tip_cid_conta"
+                         title="A conta pode conter caracteres hexadecimais e não pode começar com a letra A.">
+                </div>
+              </section>
+
+              <section class="vc-contact-section">
+                <div class="vc-subhead" data-i18n="sistema.cid_dtmf">Número de telefone da receptora DTMF</div>
+                <div class="vc-contact-dtmf-grid">
+                  <label class="vc-contact-field">
+                    <span class="vc-label-sm" data-i18n="sistema.numero1">Número 1:</span>
+                    <input class="vc-input" type="text" data-par="E9020001"
+                           data-i18n-title="sistema.tip_dtmf_1" title="Primeiro número para envio de eventos via rádio.">
+                  </label>
+                  <label class="vc-contact-field">
+                    <span class="vc-label-sm" data-i18n="sistema.numero2">Número 2:</span>
+                    <input class="vc-input" type="text" data-par="E9020002">
+                  </label>
+                </div>
+              </section>
+            </div>
+            <div class="vc-card-footer">
+              <button class="vc-btn outline" type="button" data-action="cancel">
+                <span data-i18n="common.cancel">Cancelar</span>
+              </button>
+              <button class="vc-btn" type="button" data-action="save">
+                <span data-i18n="sistema.save">Gravar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="vc-contact-side">
+          <div class="vc-card mb-3 vc-contact-card" data-card="contactid-prioridade">
+            <div class="vc-card-header" data-i18n="sistema.cid_prioridade">Prioridade de conexão</div>
+            <div class="vc-card-body">
+              <label class="vc-label mb-2 d-block" data-i18n-title="sistema.tip_cid_prioridade" title="Definir a ordem de tentativa das vias de comunicação.">
+                Definir a ordem de tentativa das vias de comunicacao.
+              </label>
+              <div class="vc-contact-priority-list" data-priority-group="A1070000">
+                <input class="vc-contact-priority-value" type="hidden" data-par="A1070000" value="1"
+                       data-i18n-title="sistema.tip_cid_prioridade"
+                       title="Definir a ordem de tentativa das vias de comunicação.">
+                <label class="vc-contact-priority-option">
+                  <input type="radio" name="vcContactPriority" value="1" checked>
+                  <span>Ethernet&nbsp;&nbsp;-&nbsp;&nbsp;WiFi&nbsp;&nbsp;-&nbsp;&nbsp;GPRS</span>
+                </label>
+                <label class="vc-contact-priority-option">
+                  <input type="radio" name="vcContactPriority" value="2">
+                  <span>Ethernet&nbsp;&nbsp;-&nbsp;&nbsp;GPRS&nbsp;&nbsp;-&nbsp;&nbsp;WiFi</span>
+                </label>
+                <label class="vc-contact-priority-option">
+                  <input type="radio" name="vcContactPriority" value="3">
+                  <span>GPRS&nbsp;&nbsp;-&nbsp;&nbsp;Ethernet&nbsp;&nbsp;-&nbsp;&nbsp;WiFi</span>
+                </label>
+                <label class="vc-contact-priority-option">
+                  <input type="radio" name="vcContactPriority" value="4">
+                  <span>GPRS&nbsp;&nbsp;-&nbsp;&nbsp;WiFi&nbsp;&nbsp;-&nbsp;&nbsp;Ethernet</span>
+                </label>
+                <label class="vc-contact-priority-option">
+                  <input type="radio" name="vcContactPriority" value="5">
+                  <span>WiFi&nbsp;&nbsp;-&nbsp;&nbsp;Ethernet&nbsp;&nbsp;-&nbsp;&nbsp;GPRS</span>
+                </label>
+                <label class="vc-contact-priority-option">
+                  <input type="radio" name="vcContactPriority" value="6">
+                  <span>WiFi&nbsp;&nbsp;-&nbsp;&nbsp;GPRS&nbsp;&nbsp;-&nbsp;&nbsp;Ethernet</span>
+                </label>
+              </div>
+            </div>
+            <div class="vc-card-footer">
+              <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+              <button class="vc-btn" type="button" data-action="save"><span data-i18n="sistema.save">Gravar</span></button>
+            </div>
+          </div>
+
+          <div class="vc-card mb-3 vc-contact-card" data-card="contactid-teste">
+            <div class="vc-card-header">Supervis&atilde;o de conectividade</div>
+            <div class="vc-card-body vc-contact-supervision-body">
+              <div class="vc-contact-supervision-group">
+                <div class="vc-contact-supervision-title" data-i18n="sistema.cid_teste">Mensagem de teste peri&oacute;dico</div>
+                <label class="vc-contact-supervision-row">
+                  <input type="checkbox" class="vc-switch" checked disabled>
+                  <span data-i18n="sistema.cid_intervalado">A cada intervalo de:</span>
+                  <input class="vc-input" type="number" min="1" max="1440" data-par="B1070000">
+                  <span data-i18n="sistema.minutos">Minutos</span>
+                </label>
+                <label class="vc-contact-supervision-row vc-contact-disabled-row">
+                  <input type="checkbox" class="vc-switch" disabled>
+                  <span>Diariamente &agrave;s:</span>
+                  <input class="vc-input" type="time" disabled>
+                </label>
+              </div>
+              <div class="vc-contact-keepalive">
+                <div class="vc-contact-supervision-title">Intervalo do Keep-Alive (segundos)</div>
+                <label class="vc-contact-keepalive-row">
+                  <span>Ethernet:</span>
+                  <input class="vc-input" type="number" disabled>
+                </label>
+                <label class="vc-contact-keepalive-row">
+                  <span>GPRS:</span>
+                  <input class="vc-input" type="number" disabled>
+                </label>
+                <label class="vc-contact-keepalive-row">
+                  <span>WiFi:</span>
+                  <input class="vc-input" type="number" disabled>
+                </label>
+              </div>
+            </div>
+            <div class="vc-card-footer">
+              <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+              <button class="vc-btn" type="button" data-action="save"><span data-i18n="sistema.save">Gravar</span></button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /vcSysContactId -->
+
+
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+         ABA 2 â€” REDE
+         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+    <div class="vc-sys-panel" id="vcSysRede" data-loaded="0">
+
+      <!-- Card Ethernet -->
+      <div class="vc-card mb-3" data-card="rede-ethernet">
+        <div class="vc-card-header" data-i18n="sistema.rede_ethernet">ConfiguraÃ§Ã£o ethernet</div>
+        <div class="vc-card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="vc-subhead" data-i18n="sistema.rede_em_uso">Valores em uso</div>
+              <div class="row g-2">
+                <div class="col-12 d-flex justify-content-between"><span class="vc-label-sm" data-i18n="sistema.ip">EndereÃ§o IP:</span> <span data-par-readonly="71010000">---</span></div>
+                <div class="col-12 d-flex justify-content-between"><span class="vc-label-sm" data-i18n="sistema.mask">MÃ¡scara de sub-rede:</span> <span data-par-readonly="71030000">---</span></div>
+                <div class="col-12 d-flex justify-content-between"><span class="vc-label-sm" data-i18n="sistema.gateway">Gateway PadrÃ£o:</span> <span data-par-readonly="71020000">---</span></div>
+                <div class="col-12 d-flex justify-content-between"><span class="vc-label-sm" data-i18n="sistema.dns">Servidor DNS:</span> <span data-par-readonly="71040000">---</span></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="vc-subhead" data-i18n="sistema.rede_manual">Valores configurados manualmente</div>
+              <div class="row g-2">
+                <div class="col-12">
+                  <label class="form-check">
+                    <!-- PAR 910A0000 Ã© flag "Static" na central (0=DHCP, 1=Static).
+                         data-par-bool-invert: a UI mostra "Ativar DHCP" com a lÃ³gica invertida. -->
+                    <input type="checkbox" class="form-check-input"
+                           data-par="910A0000" data-par-bool data-par-bool-invert>
+                    <span data-i18n="sistema.dhcp">Ativar DHCP</span>
+                  </label>
+                </div>
+                <div class="col-12"><label class="vc-label-sm" data-i18n="sistema.ip">EndereÃ§o IP:</label><input class="vc-input" data-par="F1010000"></div>
+                <div class="col-12"><label class="vc-label-sm" data-i18n="sistema.mask">MÃ¡scara de sub-rede:</label><input class="vc-input" data-par="F1030000"></div>
+                <div class="col-12"><label class="vc-label-sm" data-i18n="sistema.gateway">Gateway PadrÃ£o:</label><input class="vc-input" data-par="F1020000"></div>
+                <div class="col-12"><label class="vc-label-sm" data-i18n="sistema.dns">Servidor DNS:</label><input class="vc-input" data-par="F1040000"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="vc-card-footer">
+          <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+          <button class="vc-btn" type="button" data-action="save"><span data-i18n="sistema.save">Gravar</span></button>
+        </div>
+      </div>
+
+      <!-- Card GPRS -->
+      <div class="vc-card mb-3" data-card="rede-gprs">
+        <div class="vc-card-header" data-i18n="sistema.rede_gprs">ConfiguraÃ§Ã£o GPRS</div>
+        <div class="vc-card-body">
+          <div class="row g-3">
+            <div class="col-md-4"><label class="vc-label-sm" data-i18n="sistema.apn">APN:</label><input class="vc-input" data-par="61070000"></div>
+            <div class="col-md-4"><label class="vc-label-sm" data-i18n="sistema.login">Login:</label><input class="vc-input" data-par="61050000"></div>
+            <div class="col-md-4">
+              <label class="vc-label-sm" data-i18n="sistema.senha">Senha:</label>
+              <div class="vc-input-wrap">
+                <input class="vc-input" type="password" id="vcSysGprsSenha" data-par="61060000">
+                <button type="button" class="vc-input-eye" onclick="vcTogglePassword('vcSysGprsSenha', this)"><i class="bi bi-eye"></i></button>
+              </div>
+            </div>
+            <div class="col-md-4 d-flex justify-content-between"><span class="vc-label-sm" data-i18n="sistema.modem_modelo">Modelo do modem:</span><span data-par-readonly="61040000">---</span></div>
+            <div class="col-md-4 d-flex justify-content-between"><span class="vc-label-sm" data-i18n="sistema.imei">IMEI:</span><span data-par-readonly="61030000">---</span></div>
+            <div class="col-md-4 d-flex justify-content-between"><span class="vc-label-sm" data-i18n="sistema.iccid">ICC-ID:</span><span data-par-readonly="61080000">---</span></div>
+          </div>
+
+          <!-- Valores em uso (extraÃ­dos do STAT 4 â€” preenchidos por _vcApplyStat5) -->
+          <div class="vc-subhead mt-3" data-i18n="sistema.rede_em_uso">Valores em uso</div>
+          <div class="row g-2">
+            <div class="col-md-3 d-flex justify-content-between"><span class="vc-label-sm" data-i18n="sistema.gprs_status">Status:</span><span id="vcSysGprsStatus">---</span></div>
+            <div class="col-md-3 d-flex justify-content-between"><span class="vc-label-sm" data-i18n="sistema.gprs_operadora">Operadora:</span><span id="vcSysGprsOperadora">---</span></div>
+            <div class="col-md-3 d-flex justify-content-between"><span class="vc-label-sm" data-i18n="sistema.gprs_tipo">Tipo:</span><span id="vcSysGprsTipo">---</span></div>
+            <div class="col-md-3 d-flex justify-content-between"><span class="vc-label-sm" data-i18n="sistema.gprs_rssi">Sinal RSSI:</span><span id="vcSysGprsRssi">---</span></div>
+          </div>
+        </div>
+        <div class="vc-card-footer">
+          <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+          <button class="vc-btn" type="button" data-action="save"><span data-i18n="sistema.save">Gravar</span></button>
+        </div>
+      </div>
+
+      <!-- Card Wi-Fi -->
+      <div class="vc-card mb-3" data-card="rede-wifi">
+        <div class="vc-card-header" data-i18n="sistema.rede_wifi">ConfiguraÃ§Ã£o Wi-Fi</div>
+        <div class="vc-card-body">
+          <div class="row g-3">
+            <div class="col-md-6"><label class="vc-label-sm" data-i18n="sistema.wifi_ssid">SSID Rede Wi-Fi:</label><input class="vc-input" data-par="E1070000"></div>
+            <div class="col-md-6">
+              <label class="vc-label-sm" data-i18n="sistema.wifi_senha">Senha Rede Wi-Fi:</label>
+              <div class="vc-input-wrap">
+                <input class="vc-input" type="password" id="vcSysWifiSenha" data-par="E1080000">
+                <button type="button" class="vc-input-eye" onclick="vcTogglePassword('vcSysWifiSenha', this)"><i class="bi bi-eye"></i></button>
+              </div>
+            </div>
+            <div class="col-md-6"><label class="vc-label-sm" data-i18n="sistema.wifi_ap_ssid">SSID do Wi-Fi do Painel:</label><input class="vc-input" data-par="E1090000"
+                     data-i18n-title="sistema.tip_wifi_ap_ssid" title="Nome da rede WiFi criada pela central."></div>
+            <div class="col-md-6">
+              <label class="vc-label-sm" data-i18n="sistema.wifi_ap_senha">Senha do Wi-Fi do Painel:</label>
+              <div class="vc-input-wrap">
+                <input class="vc-input" type="password" id="vcSysWifiApSenha" data-par="E10A0000">
+                <button type="button" class="vc-input-eye" onclick="vcTogglePassword('vcSysWifiApSenha', this)"><i class="bi bi-eye"></i></button>
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="form-check">
+                <input type="checkbox" class="form-check-input" data-par="91110000" data-par-bool>
+                <span data-i18n="sistema.wifi_ap_oculto">Ocultar SSID do Wi-Fi do Painel</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Valores em uso (do PAR 610B0000 que retorna 4 sub-campos) -->
+          <div class="vc-subhead mt-3" data-i18n="sistema.rede_em_uso">Valores em uso</div>
+          <div class="row g-2">
+            <div class="col-md-6 d-flex justify-content-between"><span class="vc-label-sm" data-i18n="sistema.wifi_st_ip">IP (Station):</span><span data-par-multi="610B0000:STIP">---</span></div>
+            <div class="col-md-6 d-flex justify-content-between"><span class="vc-label-sm" data-i18n="sistema.wifi_st_mac">MAC (Station):</span><span data-par-multi="610B0000:STMAC">---</span></div>
+            <div class="col-md-6 d-flex justify-content-between"><span class="vc-label-sm" data-i18n="sistema.wifi_ap_ip">IP (AP do Painel):</span><span data-par-multi="610B0000:APIP">---</span></div>
+            <div class="col-md-6 d-flex justify-content-between"><span class="vc-label-sm" data-i18n="sistema.wifi_ap_mac">MAC (AP do Painel):</span><span data-par-multi="610B0000:APMAC">---</span></div>
+          </div>
+        </div>
+        <div class="vc-card-footer">
+          <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+          <button class="vc-btn" type="button" data-action="save"><span data-i18n="sistema.save">Gravar</span></button>
+        </div>
+      </div>
+
+    </div><!-- /vcSysRede -->
+
+
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+         ABA 3 â€” SUPERVISÃƒO
+         (Layout fiel ao Figma. ParÃ¢metros sem mapeamento conhecido no
+          doc Vetti tÃªm data-par-todo="..." em vez de data-par, e
+          mostram um aviso quando o usuÃ¡rio clica em Gravar.)
+         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+    <div class="vc-sys-panel" id="vcSysSupervisao" data-loaded="0">
+
+      <div class="row g-3">
+
+        <!-- â”€â”€ Coluna esquerda â”€â”€ -->
+        <div class="col-xl-7">
+
+          <!-- Card: Monitor sirene + Retardo AC + Tamper sensores -->
+          <div class="vc-card mb-3" data-card="supervisao-sirene">
+            <div class="vc-card-body">
+              <div class="row g-2 align-items-center">
+                <div class="col-12">
+                  <label class="vc-toggle-row">
+                    <!-- PAR 91130000: central armazena 0=Monitora, 1=NÃ£o monitora â†’ label "Monitorar" â†’ invertido -->
+                    <input type="checkbox" class="vc-switch" data-par="91130000" data-par-bool data-par-bool-invert>
+                    <span data-i18n="sistema.sup_monitor_sirene">Monitorar a presenÃ§a da sirene com fio e gerar os respectivos eventos Contact ID</span>
+                  </label>
+                </div>
+                <div class="col-12">
+                  <label class="vc-toggle-row">
+                    <!-- PAR 911C0000: central armazena 0=Monitora, 1=Ignora â†’ label "Monitorar" â†’ invertido -->
+                    <input type="checkbox" class="vc-switch" data-par="911C0000" data-par-bool data-par-bool-invert>
+                    <span data-i18n="sistema.sup_monitor_tamper_sensores">Monitorar a violaÃ§Ã£o do tamper nos sensores comuns</span>
+                  </label>
+                </div>
+                <div class="col-12 d-flex align-items-center gap-2 mt-2">
+                  <label class="vc-label-sm" data-i18n="sistema.sup_retardo_ac">Retardo para a geraÃ§Ã£o dos eventos da falha de AC (10 a 240 segundos):</label>
+                  <input class="vc-input" type="number" min="10" max="240" data-par="A11A0000" style="width:90px;">
+                </div>
+              </div>
+            </div>
+            <div class="vc-card-footer">
+              <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+              <button class="vc-btn" type="button" data-action="save"><span data-i18n="sistema.save">Gravar</span></button>
+            </div>
+          </div>
+
+          <!-- Card: Teclado RF -->
+          <div class="vc-card mb-3" data-card="supervisao-teclado">
+            <div class="vc-card-header" data-i18n="sistema.sup_teclado">Teclado RF</div>
+            <div class="vc-card-body">
+              <div class="row g-2 align-items-center">
+                <div class="col-12">
+                  <label class="vc-toggle-row">
+                    <input type="checkbox" class="vc-switch" data-par="91200000" data-par-bool>
+                    <span data-i18n="sistema.sup_teclado_instalado">Teclado RF instalado</span>
+                  </label>
+                </div>
+                <div class="col-12 d-flex align-items-center gap-2 mt-2">
+                  <label class="vc-label-sm" data-i18n="sistema.sup_teclado_keepalive">Gerar evento de falha apÃ³s (minutos sem comunicaÃ§Ã£o do teclado):</label>
+                  <input class="vc-input" type="number" min="1" max="240" data-par="A1150000" style="width:90px;">
+                </div>
+              </div>
+            </div>
+            <div class="vc-card-footer">
+              <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+              <button class="vc-btn" type="button" data-action="save"><span data-i18n="sistema.save">Gravar</span></button>
+            </div>
+          </div>
+
+          <!-- Card: RetransmissÃ£o 24h -->
+          <div class="vc-card mb-3" data-card="supervisao-retransmissao">
+            <div class="vc-card-header" data-i18n="sistema.sup_retrans">RetransmissÃ£o de eventos a cada 24 horas</div>
+            <div class="vc-card-body">
+              <div class="row g-3">
+                <div class="col-md-7 d-flex flex-column gap-2">
+                  <label class="vc-toggle-row">
+                    <input type="checkbox" class="vc-switch" data-par="912A0000" data-par-bool>
+                    <span data-i18n="sistema.sup_retrans_bat">Bateria baixa dos sensores</span>
+                  </label>
+                  <label class="vc-toggle-row">
+                    <input type="checkbox" class="vc-switch" data-par="912B0000" data-par-bool>
+                    <span data-i18n="sistema.sup_retrans_pgm_ausente">Sensor ou dispositivo de automaÃ§Ã£o (PGM) ausente</span>
+                  </label>
+                  <label class="vc-toggle-row">
+                    <input type="checkbox" class="vc-switch" data-par="912C0000" data-par-bool>
+                    <span data-i18n="sistema.sup_retrans_pgm_inibido">Sensor ou dispositivo de automaÃ§Ã£o (PGM) inibido</span>
+                  </label>
+                  <label class="vc-toggle-row">
+                    <input type="checkbox" class="vc-switch" data-par-todo="retrans_tamper" data-par-bool>
+                    <span data-i18n="sistema.sup_retrans_tamper">ViolaÃ§Ã£o de tamper</span>
+                  </label>
+                </div>
+                <div class="col-md-5">
+                  <div class="vc-time-box">
+                    <label class="vc-toggle-row">
+                      <!-- PAR 912D0000: central armazena 0=VariÃ¡vel, 1=Fixo â†’ label "HorÃ¡rio variÃ¡vel" â†’ invertido -->
+                      <input type="checkbox" class="vc-switch" data-par="912D0000" data-par-bool data-par-bool-invert>
+                      <span data-i18n="sistema.sup_horario_var">HorÃ¡rio variÃ¡vel</span>
+                    </label>
+                    <div class="vc-time-display" id="vcSupHorarioVar">00:00</div>
+                    <button class="vc-btn sm" type="button" id="vcSupHorarioEditBtn"
+                            data-i18n-title="sistema.tip_editar_horario" title="Editar horÃ¡rio">
+                      <span data-i18n="sistema.editar">Editar</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="vc-card-footer">
+              <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+              <button class="vc-btn" type="button" data-action="save"><span data-i18n="sistema.save">Gravar</span></button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- â”€â”€ Coluna direita: Sensores comuns LR â”€â”€ -->
+        <div class="col-xl-5">
+          <div class="vc-card mb-3" data-card="supervisao-lr">
+            <div class="vc-card-body">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="vc-label" data-i18n="sistema.sup_sensores_comuns">SupervisÃ£o dos sensores comuns:</span>
+                <label class="vc-toggle-row mb-0">
+                  <!-- PAR 91170000: SupervisÃ£o RF dispositivos comuns (0=desativada, 1=ativada).
+                       O PAR 91180000 (Tamper 24h) era usado aqui mas a semÃ¢ntica nÃ£o bate
+                       com a label "SupervisÃ£o dos sensores comuns ativada". A confirmar. -->
+                  <input type="checkbox" class="vc-switch" data-par="91170000" data-par-bool>
+                  <span data-i18n="sistema.sup_ativada_24h">Ativada (24 horas)</span>
+                </label>
+              </div>
+
+              <div class="vc-subhead" data-i18n="sistema.sup_intervalo_lr"
+                   data-i18n-title="sistema.tip_intervalo_lr"
+                   title="PerÃ­odo de tempo em que os sensores LR enviaram o seu sinal de vida.">
+                Intervalo do sinal de vida para os dispositivos LR (em horas)
+              </div>
+              <!-- PAR A1100000 (Sinal de vida LR): central armazena 1..6,
+                   que mapeiam para 1/2/4/8/12/24 horas. -->
+              <div class="d-flex gap-3 align-items-center my-2 flex-wrap">
+                <label class="vc-radio-row"><input type="radio" name="vcSupLrHoras" data-par="A1100000" value="1"><span>1</span></label>
+                <label class="vc-radio-row"><input type="radio" name="vcSupLrHoras" data-par="A1100000" value="2"><span>2</span></label>
+                <label class="vc-radio-row"><input type="radio" name="vcSupLrHoras" data-par="A1100000" value="3"><span>4</span></label>
+                <label class="vc-radio-row"><input type="radio" name="vcSupLrHoras" data-par="A1100000" value="4"><span>8</span></label>
+                <label class="vc-radio-row"><input type="radio" name="vcSupLrHoras" data-par="A1100000" value="5"><span>12</span></label>
+                <label class="vc-radio-row"><input type="radio" name="vcSupLrHoras" data-par="A1100000" value="6"><span>24</span></label>
+              </div>
+
+              <div class="vc-subhead mt-3" data-i18n="sistema.sup_intervalo_central">Intervalo de leitura do sinal de vida realizado pela central.</div>
+              <div class="row g-2 mt-1">
+                <div class="col-6 d-flex align-items-center gap-2">
+                  <span class="vc-label-sm" data-i18n="sistema.sup_sensores_lr">Sensores LR</span>
+                </div>
+                <div class="col-6 d-flex align-items-center gap-2">
+                  <span class="vc-label-sm" data-i18n="sistema.sup_sirene_pgm">Sirene sem fio e PGM</span>
+                </div>
+                <div class="col-6 d-flex align-items-center gap-2">
+                  <label class="vc-toggle-row mb-0">
+                    <input type="checkbox" class="vc-switch" data-par-todo="sup_lr_ativa" data-par-bool>
+                    <span data-i18n="sistema.sup_ativada">Ativada:</span>
+                  </label>
+                  <select class="vc-select" data-par-todo="sup_lr_intervalo" style="width:80px;">
+                    <option>24h</option><option>12h</option><option>8h</option>
+                    <option>4h</option><option>2h</option><option>1h</option>
+                  </select>
+                </div>
+                <div class="col-6 d-flex align-items-center gap-2">
+                  <label class="vc-toggle-row mb-0">
+                    <input type="checkbox" class="vc-switch" data-par-todo="sup_pgm_ativa" data-par-bool>
+                    <span data-i18n="sistema.sup_ativada">Ativada:</span>
+                  </label>
+                  <select class="vc-select" data-par-todo="sup_pgm_intervalo" style="width:80px;">
+                    <option>24h</option><option>12h</option><option>8h</option>
+                    <option>4h</option><option>2h</option><option>1h</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="vc-card-footer">
+              <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+              <button class="vc-btn" type="button" data-action="save"><span data-i18n="sistema.save">Gravar</span></button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /row topo -->
+
+      <!-- â”€â”€ Avisos sonoros (full width) â”€â”€ -->
+      <div class="vc-card mb-3" data-card="supervisao-avisos">
+        <div class="vc-card-header" data-i18n="sistema.sup_avisos">Avisos sonoros</div>
+        <div class="vc-card-body d-flex flex-column gap-2">
+          <label class="vc-toggle-row">
+            <input type="checkbox" class="vc-switch" data-par-todo="aviso_sirene_2bips" data-par-bool>
+            <span data-i18n="sistema.sup_aviso_sirene_2b">Habilitar aviso sonoro repetitivo na sirene acoplada entre a violaÃ§Ã£o e o disparo (2 Bips)</span>
+          </label>
+          <label class="vc-toggle-row">
+            <input type="checkbox" class="vc-switch" data-par-todo="aviso_buzzer_2bips" data-par-bool>
+            <span data-i18n="sistema.sup_aviso_buzzer_2b">Habilitar aviso sonoro repetitivo no buzzer entre a violaÃ§Ã£o e o disparo (2 Bips)</span>
+          </label>
+          <label class="vc-toggle-row">
+            <!-- PAR 91160000: Buzzer na ausÃªncia de AC (Java: checkBoxAlarmBuzzerQuedaEnergia) -->
+            <input type="checkbox" class="vc-switch" data-par="91160000" data-par-bool>
+            <span data-i18n="sistema.sup_aviso_buzzer_3b">Habilitar aviso sonoro repetitivo no buzzer enquanto permanecer a violaÃ§Ã£o de energia (3 Bips)</span>
+          </label>
+          <label class="vc-toggle-row">
+            <!-- PAR 91150000: Buzzer na violaÃ§Ã£o do tamper (Java: checkBoxAlarmBuzzerTamper) -->
+            <input type="checkbox" class="vc-switch" data-par="91150000" data-par-bool>
+            <span data-i18n="sistema.sup_aviso_buzzer_4b">Habilitar aviso sonoro repetitivo no buzzer enquanto permanecer a violaÃ§Ã£o da tampa do painel (4 Bips)</span>
+          </label>
+          <label class="vc-toggle-row">
+            <!-- PAR 91140000: Buzzer na violaÃ§Ã£o da sirene com fio (Java: checkBoxAlarmBuzzerSireneComFio) -->
+            <input type="checkbox" class="vc-switch" data-par="91140000" data-par-bool>
+            <span data-i18n="sistema.sup_aviso_buzzer_5b">Habilitar aviso sonoro repetitivo no buzzer enquanto permanecer a violaÃ§Ã£o da sirene com fio (5 Bips)</span>
+          </label>
+          <label class="vc-toggle-row">
+            <input type="checkbox" class="vc-switch" data-par="91240000" data-par-bool>
+            <span data-i18n="sistema.sup_aviso_buzzer_6b">Habilitar aviso sonoro repetitivo no buzzer enquanto permanecer a ausÃªncia da bateria (6 Bips)</span>
+          </label>
+          <label class="vc-toggle-row">
+            <input type="checkbox" class="vc-switch" data-par="911D0000" data-par-bool>
+            <span data-i18n="sistema.sup_aviso_buzzer_entrada">Habilitar beep repetitivo no buzzer durante o tempo de entrada</span>
+          </label>
+          <label class="vc-toggle-row">
+            <input type="checkbox" class="vc-switch" data-par="911E0000" data-par-bool>
+            <span data-i18n="sistema.sup_aviso_sirene_entrada">Habilitar beep repetitivo na sirene durante o tempo de entrada</span>
+          </label>
+        </div>
+        <div class="vc-card-footer">
+          <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+          <button class="vc-btn" type="button" data-action="save"><span data-i18n="sistema.save">Gravar</span></button>
+        </div>
+      </div>
+
+    </div><!-- /vcSysSupervisao -->
+
+
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+         ABAS 4-8 â€” placeholder (HTML estÃ¡tico; sem programaÃ§Ã£o ainda)
+         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+         ABA â€” ALARME (fiel ao Figma)
+         Layout 2 colunas: IdentificaÃ§Ã£o/AtualizaÃ§Ã£o/Importar Ã  esquerda,
+         Exportar/Alterar conta Ã  direita.
+         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+    <div class="vc-sys-panel" id="vcSysAlarme" data-loaded="0">
+      <div class="row g-3">
+
+        <!-- COLUNA ESQUERDA -->
+        <div class="col-xl-6">
+
+          <!-- IdentificaÃ§Ã£o -->
+          <div class="vc-card mb-3" data-card="alarme-identificacao">
+            <div class="vc-card-header" data-i18n="alarme.identificacao">IdentificaÃ§Ã£o</div>
+            <div class="vc-card-body">
+              <div class="row g-2">
+                <div class="col-12">
+                  <label class="vc-label-sm" data-i18n="alarme.nome_central">Nome da central:</label>
+                  <input class="vc-input" type="text" data-par="E1020000">
+                </div>
+                <div class="col-12">
+                  <label class="vc-label-sm" data-i18n="alarme.senha_master">Senha master:</label>
+                  <div class="vc-input-wrap">
+                    <!-- PAR para senha master ainda nÃ£o confirmado pelo firmware.
+                         Java tem apenas E1010000 ("senha da central / operador"). -->
+                    <input class="vc-input" type="password" id="vcSysSenhaMaster" data-par-todo="senha_master"
+                           data-i18n-title="alarme.tip_senha" title="A senha deve conter de 4 a 10 caracteres numÃ©ricos.">
+                    <button type="button" class="vc-input-eye" onclick="vcTogglePassword('vcSysSenhaMaster', this)"><i class="bi bi-eye"></i></button>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <label class="vc-label-sm" data-i18n="alarme.senha_operador">Senha de operador:</label>
+                  <div class="vc-input-wrap">
+                    <input class="vc-input" type="password" id="vcSysSenhaOper" data-par="E1010000"
+                           data-i18n-title="alarme.tip_senha" title="A senha deve conter de 4 a 10 caracteres numÃ©ricos.">
+                    <button type="button" class="vc-input-eye" onclick="vcTogglePassword('vcSysSenhaOper', this)"><i class="bi bi-eye"></i></button>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <label class="vc-label-sm" data-i18n="alarme.senha_coacao">Senha de coaÃ§Ã£o (SmartTeclado):</label>
+                  <div class="vc-input-wrap">
+                    <input class="vc-input" type="password" id="vcSysSenhaCoacao" data-par="E1110000"
+                           data-i18n-title="alarme.tip_senha_coacao"
+                           title="Quando digitada no teclado, dispara pÃ¢nico silencioso.">
+                    <button type="button" class="vc-input-eye" onclick="vcTogglePassword('vcSysSenhaCoacao', this)"><i class="bi bi-eye"></i></button>
+                  </div>
+                </div>
+              </div>
+              <p class="text-muted small m-0 mt-2" data-i18n="alarme.tip_senha">A senha deve conter de 4 a 10 caracteres numÃ©ricos.</p>
+            </div>
+            <div class="vc-card-footer">
+              <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+              <button class="vc-btn"         type="button" data-action="save"><span data-i18n="common.save">Gravar</span></button>
+            </div>
+          </div>
+
+          <!-- AtualizaÃ§Ã£o -->
+          <div class="vc-card mb-3" data-card="alarme-atualizacao">
+            <div class="vc-card-header" data-i18n="alarme.atualizacao">AtualizaÃ§Ã£o</div>
+            <div class="vc-card-body">
+              <label class="vc-toggle-row">
+                <!-- PAR 91100000: central armazena 0=Sim, 1=NÃ£o (auto-update SW)
+                     â†’ label "AtualizaÃ§Ã£o automÃ¡tica" â†’ data-par-bool-invert -->
+                <input type="checkbox" class="vc-switch" data-par="91100000" data-par-bool data-par-bool-invert>
+                <span data-i18n="alarme.atualizacao_auto">AtualizaÃ§Ã£o automÃ¡tica</span>
+              </label>
+              <p class="m-0 mt-2 small" id="vcSysFwInfo" data-par-readonly="61010000">---</p>
+              <div class="d-flex align-items-center gap-2 mt-2">
+                <div class="flex-grow-1" style="background:#dde3eb;height:6px;border-radius:3px;overflow:hidden;">
+                  <div id="vcSysFwProgress" style="width:0%;background:var(--vc-blue);height:100%;"></div>
+                </div>
+                <span id="vcSysFwPct" class="vc-label-sm">0%</span>
+              </div>
+            </div>
+            <div class="vc-card-footer">
+              <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+              <button class="vc-btn"         type="button" data-action="save"><span data-i18n="common.save">Gravar</span></button>
+            </div>
+          </div>
+
+          <!-- Importar configuraÃ§Ãµes -->
+          <div class="vc-card mb-3" data-card="alarme-importar">
+            <div class="vc-card-header d-flex align-items-center justify-content-between">
+              <span data-i18n="alarme.importar_titulo">Importar configuraÃ§Ãµes</span>
+              <button class="vc-btn sm outline" type="button" id="vcSysBtnImportarJson"
+                      data-i18n-title="alarme.importar_arquivo"
+                      title="Carregar arquivo JSON de outra central para a lista">
+                <i class="bi bi-upload"></i> <span data-i18n="alarme.importar_arquivo_btn">Carregar arquivo</span>
+              </button>
+            </div>
+            <div class="vc-card-body">
+              <label class="vc-label-sm" data-i18n="alarme.config_salvas">ConfiguraÃ§Ãµes salvas</label>
+              <div id="vcSysSavedClones" class="vc-disp-list" style="max-height:260px;overflow:auto;border:1px solid #D6DCE5;border-radius:6px;">
+                <p class="text-muted small m-0 p-2" data-i18n="alarme.sem_clones">Nenhuma configuraÃ§Ã£o salva localmente.</p>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /col esquerda -->
+
+        <!-- COLUNA DIREITA -->
+        <div class="col-xl-6">
+
+          <!-- Exportar configuraÃ§Ãµes -->
+          <div class="vc-card mb-3" data-card="alarme-exportar">
+            <div class="vc-card-header" data-i18n="alarme.exportar">Exportar configuraÃ§Ãµes</div>
+            <div class="vc-card-body">
+              <label class="vc-label-sm mb-2" data-i18n="alarme.selecione_clone">Selecione os campos a serem clonados</label>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="vc-subhead" data-i18n="alarme.cfg_sistema">ConfiguraÃ§Ãµes de sistema</div>
+                  <div class="d-flex flex-column gap-1 mt-1">
+                    <label class="form-check"><input type="checkbox" class="form-check-input vc-backup-sec" value="identificacao"><span data-i18n="alarme.identificacao">IdentificaÃ§Ã£o</span></label>
+                    <label class="form-check"><input type="checkbox" class="form-check-input vc-backup-sec" value="contactid"><span data-i18n="sistema.tab_contactid">Contact ID</span></label>
+                    <label class="form-check"><input type="checkbox" class="form-check-input vc-backup-sec" value="rede"><span data-i18n="sistema.tab_rede">Rede</span></label>
+                    <label class="form-check"><input type="checkbox" class="form-check-input vc-backup-sec" value="supervisao"><span data-i18n="sistema.tab_supervisao">SupervisÃ£o</span></label>
+                    <label class="form-check"><input type="checkbox" class="form-check-input vc-backup-sec" value="usuario"><span data-i18n="sistema.tab_usuario">UsuÃ¡rio</span></label>
+                    <label class="form-check"><input type="checkbox" class="form-check-input vc-backup-sec" value="agendamento"><span data-i18n="sistema.tab_agendamento">Agendamento</span></label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="vc-subhead" data-i18n="alarme.particoes_ativas">PartiÃ§Ãµes ativas</div>
+                  <div class="d-flex flex-column gap-1 mt-1">
+                    <label class="form-check"><input type="checkbox" class="form-check-input vc-backup-part" value="dispositivos"><span data-i18n="particao.tab_dispositivos">Dispositivos</span></label>
+                    <label class="form-check"><input type="checkbox" class="form-check-input vc-backup-part" value="alarme"><span data-i18n="particao.tab_alarme">Alarme</span></label>
+                    <label class="form-check"><input type="checkbox" class="form-check-input vc-backup-part" value="tempo"><span data-i18n="particao.tab_tempo">Tempo</span></label>
+                  </div>
+                </div>
+              </div>
+              <div class="row g-2 align-items-end mt-3">
+                <div class="col-md-9">
+                  <label class="vc-label-sm" data-i18n="alarme.salvar_clonadas">Salvar configuraÃ§Ãµes clonadas:</label>
+                  <input class="vc-input" type="text" id="vcSysCloneNome" data-i18n-placeholder="alarme.nome_placeholder" placeholder="Nome">
+                </div>
+                <div class="col-md-3">
+                  <button class="vc-btn w-100" type="button" id="vcSysBtnSalvarClone"><span data-i18n="alarme.salvar">Salvar</span></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alterar nÃºmero da conta -->
+          <div class="vc-card mb-3" data-card="alarme-conta">
+            <div class="vc-card-header d-flex align-items-center justify-content-between">
+              <span data-i18n="alarme.alterar_conta">Alterar nÃºmero da conta de monitoramento</span>
+              <label class="vc-toggle-row mb-0">
+                <input type="checkbox" class="vc-switch" id="vcSysAlterarContaOn">
+              </label>
+            </div>
+            <div class="vc-card-body">
+              <div class="row g-2 align-items-end">
+                <div class="col-md-6">
+                  <label class="vc-label-sm" data-i18n="alarme.nova_conta">Nova conta:</label>
+                  <input class="vc-input" type="text" data-par="B1060000"
+                         data-i18n-title="sistema.tip_cid_conta"
+                         title="A conta pode conter caracteres hexadecimais e nÃ£o pode comeÃ§ar com a letra A.">
+                </div>
+              </div>
+
+              <!-- BotÃµes "Salvar/Importar JSON" foram movidos para os cards
+                   "Exportar configuraÃ§Ãµes" e "Importar configuraÃ§Ãµes"
+                   respectivamente â€” fluxo unificado. -->
+
+            </div>
+            <div class="vc-card-footer">
+              <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+              <button class="vc-btn"         type="button" data-action="save"><span data-i18n="common.save">Gravar</span></button>
+            </div>
+          </div>
+
+          <!-- Clones â€” varredura completa pra substituir uma central -->
+          <div class="vc-card mb-3" data-card="alarme-clones">
+            <div class="vc-card-header" data-i18n="alarme.clones_titulo">Clones</div>
+            <div class="vc-card-body">
+              <p class="vc-help small mb-3" data-i18n="alarme.clones_desc">
+                Use clones quando precisar substituir uma central por outra: o JSON gerado contÃ©m TODOS os dados configurÃ¡veis da central conectada (parÃ¢metros, usuÃ¡rios, agendamentos, dispositivos). Ao importar, a nova central fica idÃªntica Ã  original.
+              </p>
+              <div class="d-flex gap-2 flex-wrap">
+                <button class="vc-btn" type="button" id="vcSysBtnGerarClone">
+                  <i class="bi bi-download"></i>
+                  <span data-i18n="alarme.gerar_clone">Gerar clone</span>
+                </button>
+                <button class="vc-btn outline" type="button" id="vcSysBtnImportarClone">
+                  <i class="bi bi-upload"></i>
+                  <span data-i18n="alarme.importar_clone">Importar clone</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /col direita -->
+      </div>
+    </div><!-- /vcSysAlarme -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+         ABA â€” DISPOSITIVOS (fiel ao Figma)
+         Lista Ã  esquerda (5 colunas: Zona/Nome/Tipo/VersÃ£o/PartiÃ§Ã£o),
+         form Ã  direita com Particionamento (radios), Alterar zona (2 selects).
+         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+    <div class="vc-sys-panel" id="vcSysDispositivos" data-loaded="0">
+      <div class="row g-3">
+
+        <!-- Lista de dispositivos -->
+        <div class="col-xl-7">
+          <div class="vc-card mb-3" data-card="dispositivos-lista">
+            <div class="vc-card-header">
+              <span data-i18n="dispositivos.lista">Lista de dispositivos</span>
+            </div>
+            <div class="vc-card-body p-0">
+              <div class="vc-disp-grid-head px-2 py-1 small" style="grid-template-columns:60px 1fr 70px 70px 80px;">
+                <div data-i18n="dispositivos.col_zona">Zona</div>
+                <div data-i18n="dispositivos.col_nome">Nome</div>
+                <div data-i18n="dispositivos.col_tipo">Tipo</div>
+                <div data-i18n="dispositivos.col_versao">VersÃ£o</div>
+                <div data-i18n="dispositivos.col_particao">PartiÃ§Ã£o</div>
+              </div>
+              <div id="vcDispList" class="vc-disp-list" style="max-height:560px;overflow:auto;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EdiÃ§Ã£o do dispositivo selecionado -->
+        <div class="col-xl-5">
+          <div class="vc-card mb-3" data-card="dispositivos-edit">
+            <div class="vc-card-body" id="vcDispEditEmpty">
+              <p class="text-muted m-0" data-i18n="dispositivos.selecione">Selecione um dispositivo na lista para editar.</p>
+            </div>
+            <div class="vc-card-body d-none" id="vcDispEditForm">
+              <div class="row g-2">
+                <div class="col-12">
+                  <label class="vc-label-sm" data-i18n="dispositivos.tipo">Tipo:</label>
+                  <div class="vc-input vc-input-readonly" id="vcDispEditTipo">---</div>
+                </div>
+                <div class="col-12">
+                  <label class="vc-label-sm" data-i18n="scan.nome">Nome:</label>
+                  <input class="vc-input" type="text" id="vcDispEditNome" maxlength="20">
+                </div>
+              </div>
+
+              <div class="vc-subhead mt-3" data-i18n="dispositivos.particionamento">Particionamento</div>
+              <!-- O protocolo aceita bitmask (vÃ¡rias partiÃ§Ãµes). Cada checkbox
+                   corresponde a uma partiÃ§Ã£o P1..P6. -->
+              <div class="d-flex gap-3 flex-wrap">
+                <label class="vc-radio-row"><input type="checkbox" class="vc-disp-part" value="1"><span>1</span></label>
+                <label class="vc-radio-row"><input type="checkbox" class="vc-disp-part" value="2"><span>2</span></label>
+                <label class="vc-radio-row"><input type="checkbox" class="vc-disp-part" value="3"><span>3</span></label>
+                <label class="vc-radio-row"><input type="checkbox" class="vc-disp-part" value="4"><span>4</span></label>
+                <label class="vc-radio-row"><input type="checkbox" class="vc-disp-part" value="5"><span>5</span></label>
+                <label class="vc-radio-row"><input type="checkbox" class="vc-disp-part" value="6"><span>6</span></label>
+              </div>
+
+              <!-- Status row (eventos assÃ­ncronos [N6]/[N7]). Populada
+                   automaticamente quando o dispositivo transmite. -->
+              <div class="vc-card mt-3 vc-card-inner d-none" id="vcDispStatusWrap">
+                <div class="vc-card-body py-2">
+                  <div class="vc-dev-status">
+                    <div class="vc-dev-status-item"><strong data-i18n="pdisp.bateria">Bateria:</strong><span id="vcDispBat">---</span></div>
+                    <div class="vc-dev-status-item"><strong data-i18n="pdisp.status">Status:</strong><span id="vcDispStatus">---</span></div>
+                    <div class="vc-dev-status-item"><strong data-i18n="pdisp.tamper">Tamper:</strong><span id="vcDispTamper">---</span></div>
+                    <div class="vc-dev-status-item"><strong data-i18n="pdisp.rssi">RSSI:</strong><span id="vcDispRssi">---</span></div>
+                    <div class="vc-dev-status-rx" id="vcDispRx">RX: --:--</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card "Atributos da zona" â€” visÃ­vel pra sensores/PIR. Pra PGM
+                   (Plg/Int/Ven/IR/Sir) este wrapper Ã© escondido via JS. -->
+              <div id="vcDispZonaWrap">
+                <div class="vc-subhead mt-3" data-i18n="dispositivos.atributos_zona">Atributos da zona</div>
+                <!-- A central armazena as flags como string de 6 chars na PAR z:
+                     Cada checkbox = 1 char (H24='2', Temp='T', Silenc='S',
+                     Inibido='I', Stay='P', PortÃ£o='O'); '-' quando desmarcado. -->
+                <div class="row g-2">
+                  <div class="col-6">
+                    <label class="form-check"><input type="checkbox" class="form-check-input vc-disp-zone" value="h24"><span data-i18n="dispositivos.zona_h24">24 horas</span></label>
+                    <label class="form-check"><input type="checkbox" class="form-check-input vc-disp-zone" value="temp"><span data-i18n="dispositivos.zona_temp">Temporizada</span></label>
+                    <label class="form-check"><input type="checkbox" class="form-check-input vc-disp-zone" value="silenc"><span data-i18n="dispositivos.zona_silenc">Silenciosa</span></label>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-check"><input type="checkbox" class="form-check-input vc-disp-zone" value="inibido"><span data-i18n="dispositivos.zona_inibido">Inibida</span></label>
+                    <label class="form-check"><input type="checkbox" class="form-check-input vc-disp-zone" value="stay"><span data-i18n="dispositivos.zona_stay">Modo presenÃ§a (stay)</span></label>
+                    <label class="form-check"><input type="checkbox" class="form-check-input vc-disp-zone" value="portao"><span data-i18n="dispositivos.zona_portao">PortÃ£o</span></label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card "ConfiguraÃ§Ã£o de PGM" â€” visÃ­vel sÃ³ quando o dispositivo
+                   selecionado Ã© tipo Plg (Smartplug) ou Int (Interruptor) e o
+                   firmware suporta `Acao:` (mod 5 â‰¥553 / mod 6 â‰¥653). -->
+              <div id="vcDispPgmWrap" class="d-none">
+                <div class="vc-subhead mt-3" data-i18n="dispositivos.pgm_config">ConfiguraÃ§Ã£o de PGM</div>
+                <p class="vc-help small mb-2" data-i18n="dispositivos.pgm_acao_desc">
+                  AÃ§Ã£o padrÃ£o executada quando este PGM Ã© acionado por agendamento, controle remoto ou comando.
+                </p>
+                <div class="row g-2">
+                  <div class="col-6">
+                    <label class="form-check"><input type="radio" name="vcDispPgmAcao" class="form-check-input" value="1"><span data-i18n="dispositivos.pgm_ligar">Ligar</span></label>
+                    <label class="form-check"><input type="radio" name="vcDispPgmAcao" class="form-check-input" value="2"><span data-i18n="dispositivos.pgm_desligar">Desligar</span></label>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-check"><input type="radio" name="vcDispPgmAcao" class="form-check-input" value="3"><span data-i18n="dispositivos.pgm_inverter">Inverter</span></label>
+                    <label class="form-check"><input type="radio" name="vcDispPgmAcao" class="form-check-input" value="4"><span data-i18n="dispositivos.pgm_pulsar">Pulsar</span></label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card "Comando direto" â€” visÃ­vel sÃ³ pra Plg/Int. BotÃµes
+                   acionam o PGM imediatamente via CMD 3. -->
+              <div id="vcDispCmdDiretoWrap" class="d-none">
+                <div class="vc-subhead mt-3" data-i18n="dispositivos.cmd_direto">Comando direto</div>
+                <p class="vc-help small mb-2" data-i18n="dispositivos.cmd_direto_desc">
+                  Aciona imediatamente este PGM. Ãštil pra testar a instalaÃ§Ã£o.
+                </p>
+                <div class="d-flex gap-2 flex-wrap">
+                  <button class="vc-btn sm" type="button" id="vcDispCmdLigar"   data-cmd="100"><i class="bi bi-power"></i> <span data-i18n="dispositivos.cmd_ligar">Ligar</span></button>
+                  <button class="vc-btn sm" type="button" id="vcDispCmdDesligar" data-cmd="0"><i class="bi bi-power"></i> <span data-i18n="dispositivos.cmd_desligar">Desligar</span></button>
+                  <button class="vc-btn sm outline" type="button" id="vcDispCmdInverter" data-cmd="102"><i class="bi bi-arrow-repeat"></i> <span data-i18n="dispositivos.cmd_inverter">Inverter</span></button>
+                  <button class="vc-btn sm outline" type="button" id="vcDispCmdPulso"   data-cmd="101"><i class="bi bi-asterisk"></i> <span data-i18n="dispositivos.cmd_pulso">Pulso padrÃ£o</span></button>
+                </div>
+              </div>
+
+              <!-- BotÃ£o "ConfiguraÃ§Ãµes avanÃ§adas" â€” visÃ­vel pra todos os
+                   dispositivos de automaÃ§Ã£o (Plg/Int/Ven/IR/Sir) em firmware
+                   â‰¥V5.14. Abre modal in-page. -->
+              <div id="vcDispCfgAvancadaWrap" class="d-none mt-3">
+                <button class="vc-btn outline w-100" type="button" id="vcDispBtnCfgAvancada">
+                  <i class="bi bi-sliders"></i>
+                  <span data-i18n="dispositivos.cfg_avancada">ConfiguraÃ§Ãµes avanÃ§adas</span>
+                </button>
+              </div>
+
+              <!-- Card "MÃ³dulo IR" â€” visÃ­vel sÃ³ quando o tipo Ã© IR_CLONER.
+                   Permite capturar/transmitir/apagar atÃ© 20 cÃ³digos IR. -->
+              <div id="vcDispIrWrap" class="d-none">
+                <div class="vc-subhead mt-3" data-i18n="dispositivos.ir_modulo">MÃ³dulo IR</div>
+                <p class="vc-help small mb-2" data-i18n="dispositivos.ir_desc">
+                  Selecione o modo e clique no slot. Capturar: aprende um cÃ³digo novo. Transmitir: dispara o cÃ³digo gravado. Apagar: remove o cÃ³digo do slot.
+                </p>
+                <div class="row g-2 mb-2">
+                  <div class="col-12">
+                    <label class="form-check"><input type="radio" name="vcDispIrMode" class="form-check-input" value="transmit" checked><span data-i18n="dispositivos.ir_mode_transmit">Transmitir</span></label>
+                    <label class="form-check"><input type="radio" name="vcDispIrMode" class="form-check-input" value="capture"><span data-i18n="dispositivos.ir_mode_capture">Capturar</span></label>
+                    <label class="form-check"><input type="radio" name="vcDispIrMode" class="form-check-input" value="erase"><span data-i18n="dispositivos.ir_mode_erase">Apagar</span></label>
+                  </div>
+                </div>
+                <div class="d-grid gap-1" id="vcDispIrGrid" style="grid-template-columns:repeat(5,1fr);"></div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                  <small class="text-muted" id="vcDispIrLastCmd">---</small>
+                  <button class="vc-btn sm outline" type="button" id="vcDispIrRefresh">
+                    <i class="bi bi-arrow-clockwise"></i> <span data-i18n="dispositivos.ir_refresh">Atualizar</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end gap-2 mt-3">
+                <button class="vc-btn outline" type="button" id="vcDispBtnDeactivate">
+                  <span id="vcDispBtnDeactivateLabel" data-i18n="dispositivos.desativar">Desativar</span>
+                </button>
+                <button class="vc-btn outline" type="button" id="vcDispBtnExcluir"><span data-i18n="dispositivos.excluir">Excluir</span></button>
+                <button class="vc-btn" type="button" id="vcDispBtnSalvar"><span data-i18n="alarme.salvar">Salvar</span></button>
+              </div>
+
+              <div class="vc-card vc-card-inner mt-3">
+                <div class="vc-card-header" data-i18n="dispositivos.gravar_novo">Gravar novo dispositivo</div>
+                <div class="vc-card-body py-2 d-flex justify-content-end">
+                  <button class="vc-btn" type="button" id="vcDispBtnGravar"><span data-i18n="dispositivos.gravar">Gravar</span></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Combos globais da aba AutomaÃ§Ã£o (Java). Atribuem dispositivos
+           PGM a eventos da central inteira. PAR B1010000 = disparo da
+           sirene; PAR B1020000 = arme/desarme (2 s). -->
+      <div class="vc-card mb-3 mt-3" data-card="disp-globais">
+        <div class="vc-card-header" data-i18n="dispositivos.globais">Acionamentos globais</div>
+        <div class="vc-card-body">
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label class="vc-label-sm" data-i18n="dispositivos.global_sirene">Dispositivo acionado quando a sirene dispara:</label>
+              <select class="vc-input" id="vcDispGlobalSirene" data-par="B1010000" data-par-type="int" data-par-default="0">
+                <option value="0" data-i18n="dispositivos.global_nenhum">Nenhum</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="vc-label-sm" data-i18n="dispositivos.global_arme">Dispositivo acionado no arme/desarme (2 s):</label>
+              <select class="vc-input" id="vcDispGlobalArme" data-par="B1020000" data-par-type="int" data-par-default="0">
+                <option value="0" data-i18n="dispositivos.global_nenhum">Nenhum</option>
+              </select>
+            </div>
+          </div>
+          <div class="d-flex justify-content-end mt-3">
+            <button class="vc-btn" type="button" id="vcDispGlobalSalvar"><span data-i18n="alarme.salvar">Salvar</span></button>
+          </div>
+        </div>
+      </div>
+    </div><!-- /vcSysDispositivos -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+         ABA â€” USUÃRIO (fiel ao Figma)
+         Lista Ã  esquerda, formulÃ¡rio Ã  direita com 4 boxes 2x2:
+         Arme | Desarme
+         PÃ¢nico | PGM
+         Cada um com partiÃ§Ãµes P1-P6, Dias permitidos e HorÃ¡rios.
+         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+    <div class="vc-sys-panel" id="vcSysUsuario" data-loaded="0">
+      <div class="row g-3">
+
+        <!-- Lista -->
+        <div class="col-xl-5">
+          <div class="vc-card mb-3" data-card="usuario-lista" style="height:100%;">
+            <div class="vc-card-header d-flex align-items-center justify-content-between">
+              <span data-i18n="usuario.lista">Lista de usuÃ¡rios</span>
+              <button class="vc-btn sm" type="button" id="vcUserBtnNovo"><i class="bi bi-plus-lg"></i> <span data-i18n="usuario.novo">Novo usuÃ¡rio</span></button>
+            </div>
+            <div class="vc-card-body p-0">
+              <div class="vc-user-grid-head px-2 py-1 small text-muted">
+                <div data-i18n="usuario.nome">Nome</div>
+                <div class="text-end" data-i18n="usuario.cod_aux">CÃ³d. auxiliar</div>
+                <div class="text-end" data-i18n="usuario.c_associado">C. associado</div>
+              </div>
+              <div id="vcUserList" class="vc-user-list" style="max-height:600px;overflow:auto;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form -->
+        <div class="col-xl-7">
+          <div class="vc-card mb-3" data-card="usuario-form">
+            <div class="vc-card-header" data-i18n="usuario.formulario">FormulÃ¡rio do usuÃ¡rio</div>
+            <div class="vc-card-body" id="vcUserFormEmpty">
+              <p class="text-muted m-0" data-i18n="usuario.selecione">Selecione um usuÃ¡rio ou clique em "Novo usuÃ¡rio".</p>
+            </div>
+            <div class="vc-card-body d-none" id="vcUserForm">
+              <div class="row g-2 align-items-end">
+                <div class="col-md-8"><label class="vc-label-sm" data-i18n="usuario.nome_user">Nome do usuÃ¡rio</label><input class="vc-input" id="vcUserNome" maxlength="20"></div>
+                <div class="col-md-4">
+                  <label class="vc-label-sm" data-i18n="usuario.num_aux">NÃºmero auxiliar</label>
+                  <input class="vc-input" id="vcUserNumAux" readonly>
+                </div>
+                <div class="col-md-6">
+                  <label class="vc-label-sm" data-i18n="usuario.senha">Senha de usuÃ¡rio</label>
+                  <div class="vc-input-wrap">
+                    <input class="vc-input" type="password" id="vcUserSenha" maxlength="10" inputmode="numeric" pattern="[0-9]*">
+                    <button type="button" class="vc-input-eye" onclick="vcTogglePassword('vcUserSenha', this)"><i class="bi bi-eye"></i></button>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="vc-label-sm" data-i18n="usuario.controle_assoc">Controle associado</label>
+                  <select class="vc-input" id="vcUserCtrlAssoc"
+                          data-i18n-title="usuario.controle_assoc_help"
+                          title="VÃ­nculo apenas local â€” a central nÃ£o armazena esta associaÃ§Ã£o.">
+                    <option value="" data-i18n="usuario.sem_controle">(sem controle)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- 4 boxes 2x2: Arme | Desarme / PÃ¢nico | PGM -->
+              <div class="row g-2 mt-3" id="vcUserPermBoxes"></div>
+
+              <div class="d-flex justify-content-end gap-2 mt-3">
+                <button class="vc-btn outline" type="button" id="vcUserBtnCancelar"><span data-i18n="common.cancel">Cancelar</span></button>
+                <button class="vc-btn outline" type="button" id="vcUserBtnExcluir"><span data-i18n="usuario.excluir">Excluir</span></button>
+                <button class="vc-btn" type="button" id="vcUserBtnEditar"><span data-i18n="alarme.salvar">Salvar</span></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Exportar/Importar usuÃ¡rios (JSON do banco USER da central) -->
+          <div class="vc-card mb-3" data-card="usuario-io">
+            <div class="vc-card-header" data-i18n="usuario.exportar_importar">Exportar / Importar usuÃ¡rios</div>
+            <div class="vc-card-body">
+              <p class="vc-help small mb-3" data-i18n="usuario.io_desc">
+                Exporta todos os usuÃ¡rios cadastrados nesta central pra um arquivo JSON (inclui controles associados â€” vÃ­nculo local). Importar aplica os usuÃ¡rios do arquivo na central conectada â€” operaÃ§Ã£o destrutiva, sobrescreve os atuais.
+              </p>
+              <div class="d-flex gap-2 flex-wrap">
+                <button class="vc-btn" type="button" id="vcUserBtnExportar">
+                  <i class="bi bi-download"></i>
+                  <span data-i18n="usuario.exportar">Exportar usuÃ¡rios</span>
+                </button>
+                <button class="vc-btn outline" type="button" id="vcUserBtnImportar">
+                  <i class="bi bi-upload"></i>
+                  <span data-i18n="usuario.importar">Importar usuÃ¡rios</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /vcSysUsuario -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+         ABA â€” AGENDAMENTO (fiel ao Figma)
+         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+    <div class="vc-sys-panel" id="vcSysAgendamento" data-loaded="0">
+      <div class="row g-3">
+
+        <!-- Lista de agendamentos com relÃ³gios -->
+        <div class="col-xl-5">
+          <div class="vc-card mb-3" data-card="agend-lista" style="height:100%;">
+            <div class="vc-card-header d-flex align-items-center justify-content-between">
+              <span data-i18n="agendamento.lista">Lista de agendamentos</span>
+              <button class="vc-btn sm" type="button" id="vcAgendBtnNovo"><i class="bi bi-plus-lg"></i></button>
+            </div>
+            <div class="vc-card-body p-0">
+              <!-- CabeÃ§alho das colunas â€” mesmo grid-template-columns
+                   da .vc-agenda-row montada via JS -->
+              <div class="vc-agenda-grid-head" style="grid-template-columns:50px 70px 1fr 100px;">
+                <div data-i18n="agendamento.col_idx">#</div>
+                <div data-i18n="agendamento.col_hora">Hora</div>
+                <div data-i18n="agendamento.col_desc">DescriÃ§Ã£o</div>
+                <div data-i18n="agendamento.col_acao">AÃ§Ã£o</div>
+              </div>
+              <div id="vcAgendList" style="max-height:550px;overflow:auto;">
+                <p class="text-muted small m-0 p-2" data-i18n="agendamento.lista_vazia">Nenhum agendamento cadastrado.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ConfiguraÃ§Ãµes de agendamento -->
+        <div class="col-xl-7">
+          <div class="vc-card mb-3" data-card="agend-form">
+            <div class="vc-card-header" data-i18n="agendamento.config">ConfiguraÃ§Ãµes de agendamento</div>
+            <div class="vc-card-body" id="vcAgendFormEmpty">
+              <p class="text-muted m-0" data-i18n="agendamento.selecione">Selecione um agendamento ou clique em + para criar um novo.</p>
+            </div>
+            <div class="vc-card-body d-none" id="vcAgendForm">
+              <input type="hidden" id="vcAgendIdx">
+              <div class="row g-3">
+                <div class="col-md-3">
+                  <label class="vc-label-sm" data-i18n="agendamento.hora">Hora:</label>
+                  <input class="vc-input" type="time" id="vcAgendHora" value="00:00">
+                </div>
+                <div class="col-md-9">
+                  <label class="vc-label-sm" data-i18n="agendamento.descricao">DescriÃ§Ã£o:</label>
+                  <input class="vc-input" id="vcAgendDesc" maxlength="32">
+                </div>
+
+                <div class="col-md-4">
+                  <label class="vc-label-sm" data-i18n="agendamento.frequencia">FrequÃªncia:</label>
+                  <!-- Valores espelham o enum AgendaFreq do firmware:
+                       0=NONE (nÃ£o usar), 1=Anual, 2=Mensal, 3=Semanal,
+                       4=Feriados. Antes estÃ¡vamos off-by-one (comeÃ§ando
+                       em 0=Anual) e Freq:2 que pra nÃ³s era "Semanal"
+                       chegava na central como "Mensal" â†’ ERR 24. -->
+                  <select class="vc-select" id="vcAgendFreq">
+                    <option value="1" data-i18n="agendamento.freq_anual">Anual</option>
+                    <option value="2" data-i18n="agendamento.freq_mensal">Mensal</option>
+                    <option value="3" data-i18n="agendamento.freq_semanal">Semanal</option>
+                    <option value="4" data-i18n="agendamento.freq_feriado">Feriado</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="vc-label-sm" data-i18n="agendamento.mes">MÃªs (Anual):</label>
+                  <input class="vc-input" type="number" min="0" max="12" id="vcAgendMes" value="0">
+                </div>
+                <div class="col-md-4">
+                  <label class="vc-label-sm" data-i18n="agendamento.dia">Dia:</label>
+                  <input class="vc-input" type="number" min="0" max="31" id="vcAgendDia" value="0">
+                </div>
+
+                <div class="col-12">
+                  <label class="vc-label-sm" data-i18n="agendamento.semanal">Dias da semana:</label>
+                  <div class="d-flex gap-2 flex-wrap mt-1">
+                    <label class="form-check m-0"><input type="checkbox" class="form-check-input vc-agenda-dds" data-d="dom"><span data-i18n="dias.dom">Dom</span></label>
+                    <label class="form-check m-0"><input type="checkbox" class="form-check-input vc-agenda-dds" data-d="seg"><span data-i18n="dias.seg">Seg</span></label>
+                    <label class="form-check m-0"><input type="checkbox" class="form-check-input vc-agenda-dds" data-d="ter"><span data-i18n="dias.ter">Ter</span></label>
+                    <label class="form-check m-0"><input type="checkbox" class="form-check-input vc-agenda-dds" data-d="qua"><span data-i18n="dias.qua">Qua</span></label>
+                    <label class="form-check m-0"><input type="checkbox" class="form-check-input vc-agenda-dds" data-d="qui"><span data-i18n="dias.qui">Qui</span></label>
+                    <label class="form-check m-0"><input type="checkbox" class="form-check-input vc-agenda-dds" data-d="sex"><span data-i18n="dias.sex">Sex</span></label>
+                    <label class="form-check m-0"><input type="checkbox" class="form-check-input vc-agenda-dds" data-d="sab"><span data-i18n="dias.sab">SÃ¡b</span></label>
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="vc-label-sm" data-i18n="agendamento.feriado_flag">Executar em feriado:</label>
+                  <select class="vc-select" id="vcAgendFeriado">
+                    <option value="0" data-i18n="common.no">NÃ£o</option>
+                    <option value="1" data-i18n="common.yes">Sim</option>
+                  </select>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="vc-label-sm" data-i18n="agendamento.acao">AÃ§Ã£o:</label>
+                  <!-- Valores espelham o enum AgendaAcao do firmware:
+                       0=NONE, 1=Armar, 2=Desarmar, 3=Ligar PGM,
+                       4=Desligar PGM, 5=Pulsar PGM, 6=Armar Stay,
+                       7=Msg Teste CID. Removido "PGM Inverter" que
+                       nÃ£o existe no firmware. -->
+                  <select class="vc-select" id="vcAgendAcao">
+                    <option value="1" data-i18n="agenda.acao_armar">Armar</option>
+                    <option value="2" data-i18n="agenda.acao_desarmar">Desarmar</option>
+                    <option value="3" data-i18n="agenda.acao_pgm_on">PGM Ligar</option>
+                    <option value="4" data-i18n="agenda.acao_pgm_off">PGM Desligar</option>
+                    <option value="5" data-i18n="agenda.acao_pgm_pulse">PGM Pulso</option>
+                    <option value="6" data-i18n="agenda.acao_armar_stay">Armar Stay</option>
+                    <option value="7" data-i18n="agenda.acao_msg_teste">Msg Teste CID</option>
+                  </select>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="vc-label-sm" data-i18n="agendamento.pgm_idx">Ãndice PGM (0 = nenhum):</label>
+                  <input class="vc-input" type="number" min="0" max="32" id="vcAgendPgm" value="0">
+                </div>
+
+                <div class="col-12">
+                  <label class="vc-label-sm" data-i18n="agendamento.particoes">PartiÃ§Ãµes (Armar/Desarmar):</label>
+                  <div class="d-flex gap-2 flex-wrap mt-1">
+                    <label class="form-check m-0"><input type="checkbox" class="form-check-input vc-agenda-part"><span>P1</span></label>
+                    <label class="form-check m-0"><input type="checkbox" class="form-check-input vc-agenda-part"><span>P2</span></label>
+                    <label class="form-check m-0"><input type="checkbox" class="form-check-input vc-agenda-part"><span>P3</span></label>
+                    <label class="form-check m-0"><input type="checkbox" class="form-check-input vc-agenda-part"><span>P4</span></label>
+                    <label class="form-check m-0"><input type="checkbox" class="form-check-input vc-agenda-part"><span>P5</span></label>
+                    <label class="form-check m-0"><input type="checkbox" class="form-check-input vc-agenda-part"><span>P6</span></label>
+                  </div>
+                </div>
+              </div>
+              <div class="d-flex justify-content-end gap-2 mt-3">
+                <button class="vc-btn outline" type="button" id="vcAgendBtnCancelar"><span data-i18n="common.cancel">Cancelar</span></button>
+                <button class="vc-btn outline" type="button" id="vcAgendBtnExcluir"><span data-i18n="agendamento.excluir">Excluir</span></button>
+                <button class="vc-btn"         type="button" id="vcAgendBtnSalvar"><span data-i18n="alarme.salvar">Salvar</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /vcSysAgendamento -->
+
+
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+         ABA â€” FERIADOS
+         Banco da central (64 slots, comando FERIADO N).
+         Defaults nacionais empacotados em src/main/data/holidays/.
+         MÃ³veis (PÃ¡scoa, Carnaval, Corpus) calculados via Meeus.
+         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+    <div class="vc-sys-panel" id="vcSysFeriados" data-loaded="0">
+      <div class="row g-3">
+
+        <!-- COLUNA ESQUERDA â€” Lista da central -->
+        <div class="col-xl-7">
+          <div class="vc-card mb-3" data-card="feriado-lista" style="height:100%;">
+            <div class="vc-card-header d-flex align-items-center justify-content-between">
+              <span data-i18n="feriado.lista">Feriados gravados na central</span>
+              <button class="vc-btn sm" type="button" id="vcFerBtnNovo"><i class="bi bi-plus-lg"></i> <span data-i18n="feriado.novo">Novo feriado</span></button>
+            </div>
+            <div class="vc-card-body p-0">
+              <div class="vc-fer-grid-head px-2 py-1 small text-muted">
+                <div class="text-end" data-i18n="feriado.col_slot">Slot</div>
+                <div class="text-end" data-i18n="feriado.col_data">Data</div>
+                <div data-i18n="feriado.col_desc">DescriÃ§Ã£o</div>
+              </div>
+              <div id="vcFerList" class="vc-fer-list" style="max-height:540px;overflow:auto;">
+                <p class="text-muted small m-0 p-2" data-i18n="feriado.lista_vazia">Nenhum feriado cadastrado. Clique em "Carregar da central" pra ler o banco.</p>
+              </div>
+            </div>
+            <div class="vc-card-footer">
+              <button class="vc-btn outline" type="button" id="vcFerBtnCarregar">
+                <i class="bi bi-cloud-download"></i> <span data-i18n="feriado.carregar">Carregar da central</span>
+              </button>
+              <button class="vc-btn outline danger" type="button" id="vcFerBtnLimpar">
+                <i class="bi bi-trash3"></i> <span data-i18n="feriado.limpar">Limpar central</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- COLUNA DIREITA â€” Form + aÃ§Ãµes em massa -->
+        <div class="col-xl-5">
+          <div class="vc-card mb-3" data-card="feriado-form">
+            <div class="vc-card-header" data-i18n="feriado.formulario">Detalhes do feriado</div>
+            <div class="vc-card-body" id="vcFerFormEmpty">
+              <p class="text-muted m-0" data-i18n="feriado.selecione">Selecione um feriado ou clique em "Novo feriado".</p>
+            </div>
+            <div class="vc-card-body d-none" id="vcFerForm">
+              <div class="row g-2">
+                <div class="col-4">
+                  <label class="vc-label-sm" data-i18n="feriado.slot">Slot:</label>
+                  <input class="vc-input vc-input-readonly" id="vcFerSlot" readonly>
+                </div>
+                <div class="col-4">
+                  <label class="vc-label-sm" data-i18n="feriado.dia">Dia:</label>
+                  <input class="vc-input" type="number" min="1" max="31" id="vcFerDia">
+                </div>
+                <div class="col-4">
+                  <label class="vc-label-sm" data-i18n="feriado.mes">MÃªs:</label>
+                  <input class="vc-input" type="number" min="1" max="12" id="vcFerMes">
+                </div>
+                <div class="col-12">
+                  <label class="vc-label-sm" data-i18n="feriado.descricao">DescriÃ§Ã£o:</label>
+                  <input class="vc-input" type="text" id="vcFerDesc" maxlength="40"
+                         data-i18n-title="feriado.descricao_tip"
+                         title="MÃ¡ximo 40 caracteres. Acentos serÃ£o removidos automaticamente ao gravar.">
+                </div>
+              </div>
+              <div class="d-flex justify-content-end gap-2 mt-3">
+                <button class="vc-btn outline" type="button" id="vcFerBtnCancelar"><span data-i18n="common.cancel">Cancelar</span></button>
+                <button class="vc-btn outline" type="button" id="vcFerBtnExcluir"><span data-i18n="feriado.excluir">Excluir</span></button>
+                <button class="vc-btn" type="button" id="vcFerBtnSalvar"><span data-i18n="alarme.salvar">Salvar</span></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- AÃ§Ãµes em massa: defaults por paÃ­s + mÃ³veis do ano -->
+          <div class="vc-card mb-3" data-card="feriado-acoes">
+            <div class="vc-card-header d-flex align-items-center justify-content-between">
+              <span data-i18n="feriado.acoes_massa">Cadastro em massa</span>
+              <button class="vc-btn sm outline" type="button" id="vcFerBtnGerenciarPais"
+                      data-i18n-title="feriado.gerenciar_tip"
+                      title="Desativar feriados do paÃ­s ou adicionar locais (estaduais/municipais).">
+                <i class="bi bi-pencil-square"></i> <span data-i18n="feriado.gerenciar">Gerenciar</span>
+              </button>
+            </div>
+            <div class="vc-card-body">
+              <div class="row g-2 align-items-end mb-2">
+                <div class="col-7">
+                  <label class="vc-label-sm" data-i18n="feriado.pais">PaÃ­s:</label>
+                  <select class="vc-input" id="vcFerPais">
+                    <!-- Preenchido dinamicamente via holidaysDb.listCountries() -->
+                  </select>
+                </div>
+                <div class="col-5">
+                  <label class="vc-label-sm" data-i18n="feriado.ano">Ano:</label>
+                  <input class="vc-input" type="number" min="2000" max="2099" id="vcFerAno">
+                </div>
+              </div>
+              <p class="vc-help small mb-2" data-i18n="feriado.acoes_desc">
+                "Cadastrar nacionais" envia os feriados do paÃ­s selecionado pra slots livres da central (nÃ£o sobrescreve os jÃ¡ cadastrados).
+                "Atualizar mÃ³veis" sobrescreve apenas PÃ¡scoa/Carnaval/Corpus Christi/etc. pro ano informado.
+              </p>
+              <div class="d-flex gap-2 flex-wrap">
+                <button class="vc-btn" type="button" id="vcFerBtnCadastrarNacionais">
+                  <i class="bi bi-flag"></i> <span data-i18n="feriado.cadastrar_nacionais">Cadastrar nacionais</span>
+                </button>
+                <button class="vc-btn outline" type="button" id="vcFerBtnAtualizarMoveis">
+                  <i class="bi bi-arrow-repeat"></i> <span data-i18n="feriado.atualizar_moveis">Atualizar mÃ³veis</span>
+                </button>
+                <button class="vc-btn outline" type="button" id="vcFerBtnNovoPais"
+                        data-i18n-title="feriado.novo_pais_tip"
+                        title="Importar paÃ­s via Nager.Date (precisa de internet).">
+                  <i class="bi bi-cloud-download"></i> <span data-i18n="feriado.novo_pais_btn">Novo paÃ­sâ€¦</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /vcSysFeriados -->
+
+
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+         ABA â€” BUFFER (fiel ao Figma â€” layout em 1 coluna)
+         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+    <div class="vc-sys-panel" id="vcSysBuffer" data-loaded="0">
+
+      <!-- Status do log + Carregar (cabeÃ§alho compacto) -->
+      <div class="vc-card mb-3" data-card="buffer-header">
+        <div class="vc-card-header d-flex align-items-center justify-content-between">
+          <span data-i18n="buffer.status">Status do log (registro)</span>
+          <div class="d-flex gap-2">
+            <button class="vc-btn sm outline" type="button" id="vcBufferBtnExportPdf"
+                    data-i18n-title="buffer.export_pdf_tip" title="Exportar lista (com filtro) em PDF">
+              <i class="bi bi-file-earmark-pdf"></i> <span data-i18n="buffer.export_pdf">PDF</span>
+            </button>
+            <button class="vc-btn sm outline" type="button" id="vcBufferBtnExportCsv"
+                    data-i18n-title="buffer.export_csv_tip" title="Exportar lista (com filtro) em CSV">
+              <i class="bi bi-file-earmark-spreadsheet"></i> <span data-i18n="buffer.export_csv">CSV</span>
+            </button>
+          </div>
+        </div>
+        <div class="vc-card-body">
+          <div class="row g-2 align-items-center">
+            <div class="col-md-3 d-flex align-items-center gap-2"><span class="vc-label-sm" data-i18n="buffer.cap_max">Capacidade mÃ¡xima:</span><span id="vcBufferMax">1024</span></div>
+            <div class="col-md-3 d-flex align-items-center gap-2"><span class="vc-label-sm" data-i18n="buffer.armazenados">Armazenados:</span><span id="vcBufferArm">0</span></div>
+            <div class="col-md-3 d-flex align-items-center gap-2"><span class="vc-label-sm" data-i18n="buffer.nao_enviados">NÃ£o enviados:</span><span id="vcBufferNE">0</span></div>
+          </div>
+
+          <div class="row g-2 align-items-center mt-3">
+            <div class="col-md-3">
+              <label class="vc-radio-row"><input type="radio" name="vcBufferOrdem" value="new" checked><span data-i18n="buffer.ordem_novo">Mais novo â†’ antigo</span></label>
+            </div>
+            <div class="col-md-3">
+              <label class="vc-radio-row"><input type="radio" name="vcBufferOrdem" value="old"><span data-i18n="buffer.ordem_antigo">Mais antigo â†’ novo</span></label>
+            </div>
+          </div>
+
+          <div class="row g-2 align-items-center mt-2">
+            <div class="col-md-3">
+              <label class="vc-radio-row"><input type="radio" name="vcBufferModo" value="todos" checked><span data-i18n="buffer.todos">Carregar todos os eventos</span></label>
+            </div>
+            <div class="col-md-3">
+              <label class="vc-radio-row"><input type="radio" name="vcBufferModo" value="apenas"><span data-i18n="buffer.apenas">Carregar apenas:</span></label>
+            </div>
+            <div class="col-md-2">
+              <input class="vc-input" type="number" id="vcBufferQtde" value="100" min="1" max="1024">
+            </div>
+            <div class="col-md-2">
+              <button class="vc-btn w-100" type="button" id="vcBufferBtnCarregar"><span data-i18n="buffer.btn_carregar">Carregar</span></button>
+            </div>
+            <div class="col-md-2 text-end">
+              <button class="btn p-2" type="button" id="vcBufferBtnFiltro"
+                      data-i18n-title="buffer.filtro" title="Filtro" style="background:transparent;border:none;">
+                <i class="bi bi-funnel-fill" style="font-size:20px;color:var(--vc-dark);"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de eventos -->
+      <div class="vc-card mb-3" data-card="buffer-eventos">
+        <div class="vc-card-body p-0">
+          <div class="vc-buffer-grid-head px-2 py-1 small text-muted"
+               style="grid-template-columns:50px 60px 70px 1fr 60px 70px 90px 130px 130px 130px;">
+            <div>#</div>
+            <div data-i18n="buffer.conta">Conta</div>
+            <div data-i18n="buffer.evento">Evento</div>
+            <div data-i18n="buffer.descricao">DescriÃ§Ã£o de eventos</div>
+            <div data-i18n="buffer.zona">Zona</div>
+            <div data-i18n="buffer.particao">PartiÃ§Ã£o</div>
+            <div data-i18n="buffer.interface">Interface</div>
+            <div data-i18n="buffer.gerado_em">Evento gerado Ã s:</div>
+            <div data-i18n="buffer.entregue1">Entregue server 1 Ã s:</div>
+            <div data-i18n="buffer.entregue2">Entregue server 2 Ã s:</div>
+          </div>
+          <div id="vcBufferList" class="vc-buffer-list" style="max-height:520px;overflow:auto;">
+            <p class="text-muted small m-0 p-3" data-i18n="buffer.empty">Clique em "Carregar" para buscar eventos. (A central testada retorna ERR 8 â€” comando nÃ£o suportado em firmware antigo.)</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /vcSysBuffer -->
+
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+         ABA â€” AVANÃ‡ADO (escondida; Ctrl+Shift+click no header revela)
+         Espelha a aba "AvanÃ§ado" da versÃ£o Java. PARs/comandos
+         documentados em docs/comandos-que-faltam.md Â§12.
+         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+    <div class="vc-sys-panel" id="vcSysAvancado" data-loaded="0">
+
+      <!-- Card: OpÃ§Ãµes avanÃ§adas -->
+      <div class="vc-card mb-3" data-card="adv-opcoes">
+        <div class="vc-card-header" data-i18n="avancado.opcoes">OpÃ§Ãµes avanÃ§adas</div>
+        <div class="vc-card-body d-flex flex-column gap-2">
+          <label class="form-check">
+            <input type="checkbox" class="form-check-input" data-par="91050000" data-par-bool>
+            <span data-i18n="avancado.beta">Beta teste (permite que a Central receba atualizaÃ§Ãµes de firmware beta)</span>
+          </label>
+          <label class="form-check">
+            <input type="checkbox" class="form-check-input" data-par="91100000" data-par-bool data-par-bool-invert>
+            <span data-i18n="avancado.auto_update">AtualizaÃ§Ã£o de firmware automÃ¡tica</span>
+          </label>
+          <label class="form-check">
+            <input type="checkbox" class="form-check-input" data-par="91230000" data-par-bool>
+            <span data-i18n="avancado.preservar_senha">Preservar senha ao apagar a memÃ³ria da central</span>
+          </label>
+          <label class="form-check">
+            <input type="checkbox" class="form-check-input" data-par="91250000" data-par-bool data-par-bool-invert>
+            <span data-i18n="avancado.autoriza_app">Autoriza conexÃ£o do APP</span>
+          </label>
+          <div class="row g-2 align-items-center mt-2">
+            <div class="col-md-4 vc-label-sm" data-i18n="avancado.empresa">Nome da empresa de monitoramento:</div>
+            <div class="col-md-8">
+              <input class="vc-input" type="text" data-par="E1100000">
+            </div>
+          </div>
+        </div>
+        <div class="vc-card-footer">
+          <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+          <button class="vc-btn" type="button" data-action="save"><span data-i18n="common.save">Gravar</span></button>
+        </div>
+      </div>
+
+      <!-- Card: VettiLogger -->
+      <div class="vc-card mb-3" data-card="adv-logger">
+        <div class="vc-card-header" data-i18n="avancado.vetti_logger">VettiLogger</div>
+        <div class="vc-card-body">
+          <label class="vc-radio-row d-block mb-2">
+            <input type="radio" name="vcAdvLoggerMode" id="vcAdvLoggerLocal" value="local">
+            <span data-i18n="avancado.logger_local">Rede local</span>
+          </label>
+          <div class="row g-2 align-items-center ms-3 mb-1">
+            <div class="col-md-7 vc-label-sm" data-i18n="avancado.logger_eth_port">Interface ethernet - porta UDP utilizada para enviar as informaÃ§Ãµes de debug:</div>
+            <div class="col-md-2"><input class="vc-input" type="number" data-par="B1030000" id="vcAdvEthDebugPort"></div>
+          </div>
+          <div class="row g-2 align-items-center ms-3 mb-3">
+            <div class="col-md-7 vc-label-sm" data-i18n="avancado.logger_wifi_port">Interface Wi-Fi - porta UDP utilizada para enviar as informaÃ§Ãµes de debug:</div>
+            <div class="col-md-2"><input class="vc-input" type="number" data-par="B1080000" id="vcAdvWifiDebugPort"></div>
+          </div>
+
+          <label class="vc-radio-row d-block mb-2">
+            <input type="radio" name="vcAdvLoggerMode" id="vcAdvLoggerRemote" value="remote">
+            <span data-i18n="avancado.logger_remoto">Servidor remoto</span>
+          </label>
+          <div class="row g-2 align-items-center ms-3 mb-1">
+            <div class="col-md-3 vc-label-sm" data-i18n="avancado.logger_url">URL:</div>
+            <div class="col-md-7"><input class="vc-input" type="text" data-par="E10E0000" id="vcAdvLoggerUrl"></div>
+          </div>
+          <div class="row g-2 align-items-center ms-3 mb-1">
+            <div class="col-md-3 vc-label-sm" data-i18n="avancado.logger_porta_eth">Porta UDP (ethernet):</div>
+            <div class="col-md-2"><input class="vc-input" type="number" data-par="B1120000" id="vcAdvLoggerPortEth"></div>
+          </div>
+          <div class="row g-2 align-items-center ms-3 mb-1">
+            <div class="col-md-3 vc-label-sm" data-i18n="avancado.logger_porta_wifi">Porta UDP (Wi-Fi):</div>
+            <div class="col-md-2"><input class="vc-input" type="number" data-par="B1130000" id="vcAdvLoggerPortWifi"></div>
+          </div>
+          <div class="row g-2 align-items-center ms-3 mb-1">
+            <div class="col-md-3 vc-label-sm" data-i18n="avancado.logger_porta_gprs">Porta UDP (GPRS):</div>
+            <div class="col-md-2"><input class="vc-input" type="number" data-par="B1140000" id="vcAdvLoggerPortGprs"></div>
+          </div>
+          <div class="row g-2 align-items-center ms-3 mb-1">
+            <div class="col-md-3 vc-label-sm" data-i18n="avancado.logger_dias">Prazo mÃ¡ximo (em dias):</div>
+            <div class="col-md-2"><input class="vc-input" type="number" data-par="A1120000" id="vcAdvLoggerMaxDays"></div>
+          </div>
+        </div>
+        <div class="vc-card-footer">
+          <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+          <button class="vc-btn"         type="button" id="vcAdvBtnSaveLogger"><span data-i18n="common.save">Gravar</span></button>
+        </div>
+      </div>
+
+      <!-- Card: Modo sniffer -->
+      <div class="vc-card mb-3" data-card="adv-sniffer">
+        <div class="vc-card-header" data-i18n="avancado.sniffer">Modo sniffer</div>
+        <div class="vc-card-body d-flex flex-column gap-1">
+          <label class="vc-radio-row"><input type="radio" name="vcAdvSniffer" value="off"><span data-i18n="avancado.sniffer_off">Desativado</span></label>
+          <label class="vc-radio-row"><input type="radio" name="vcAdvSniffer" value="cid"><span data-i18n="avancado.sniffer_cid">Sniffer + Contact ID</span></label>
+          <label class="vc-radio-row"><input type="radio" name="vcAdvSniffer" value="only"><span data-i18n="avancado.sniffer_only">Somente sniffer</span></label>
+          <label class="vc-radio-row"><input type="radio" name="vcAdvSniffer" value="db"><span data-i18n="avancado.sniffer_db">Somente cadastrados</span></label>
+        </div>
+        <div class="vc-card-footer">
+          <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+          <button class="vc-btn"         type="button" id="vcAdvBtnSaveSniffer"><span data-i18n="common.save">Gravar</span></button>
+        </div>
+      </div>
+
+      <!-- Card: Comandos especiais -->
+      <div class="vc-card mb-3" data-card="adv-cmds">
+        <div class="vc-card-header" data-i18n="avancado.cmds_especiais">Comandos especiais</div>
+        <div class="vc-card-body">
+          <button class="vc-btn outline" type="button" id="vcAdvBtnLimparBuffer">
+            <i class="bi bi-trash3"></i>
+            <span data-i18n="avancado.limpar_buffer">Limpar buffer</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card: Nome do arquivo para atualizaÃ§Ã£o de firmware -->
+      <div class="vc-card mb-3" data-card="adv-firmware">
+        <div class="vc-card-header" data-i18n="avancado.firmware">Nome do arquivo para atualizaÃ§Ã£o de firmware</div>
+        <div class="vc-card-body">
+          <div class="row g-2 align-items-center">
+            <div class="col-md-9">
+              <input class="vc-input" type="text" id="vcAdvFirmwareFile" value="SmartAlarm.txt">
+            </div>
+            <div class="col-md-3">
+              <button class="vc-btn w-100" type="button" id="vcAdvBtnFirmwareUpdate">
+                <i class="bi bi-cloud-download"></i>
+                <span data-i18n="avancado.atualizar">Atualizar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Interface de comunicaÃ§Ã£o com o teclado -->
+      <div class="vc-card mb-3" data-card="adv-mns">
+        <div class="vc-card-header" data-i18n="avancado.mns_titulo">Interface de comunicaÃ§Ã£o com o teclado</div>
+        <div class="vc-card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="vc-subhead" data-i18n="avancado.ethernet">Ethernet</div>
+              <label class="vc-label-sm" data-i18n="avancado.mns_ip">EndereÃ§o IP:</label>
+              <input class="vc-input" type="text" data-par="F1060000">
+              <label class="vc-label-sm mt-2" data-i18n="avancado.mns_porta">Porta:</label>
+              <input class="vc-input" type="number" data-par="B1150000">
+            </div>
+            <div class="col-md-6">
+              <div class="vc-subhead" data-i18n="avancado.wifi">Wi-Fi</div>
+              <label class="vc-label-sm" data-i18n="avancado.mns_ip">EndereÃ§o IP:</label>
+              <input class="vc-input" type="text" data-par="F1070000">
+              <label class="vc-label-sm mt-2" data-i18n="avancado.mns_porta">Porta:</label>
+              <input class="vc-input" type="number" data-par="B1160000">
+            </div>
+          </div>
+        </div>
+        <div class="vc-card-footer">
+          <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+          <button class="vc-btn"         type="button" data-action="save"><span data-i18n="common.save">Gravar</span></button>
+        </div>
+      </div>
+
+      <!-- Card: Sirene sem fio (firmware >= v7.00) -->
+      <div class="vc-card mb-3" data-card="adv-sirene">
+        <div class="vc-card-header d-flex align-items-center justify-content-between">
+          <span data-i18n="avancado.sirene">Sirene sem fio (firmware &gt;= v7.00)</span>
+          <button class="vc-btn sm" type="button" id="vcAdvBtnSireneTx">
+            <span data-i18n="avancado.tx">TX</span>
+            <i class="bi bi-play-fill"></i>
+          </button>
+        </div>
+        <div class="vc-card-body">
+          <div class="row g-3">
+            <!-- Low Duty Cycle -->
+            <div class="col-md-5">
+              <div class="vc-subhead text-center" data-i18n="avancado.low_duty">FunÃ§Ã£o "Low Duty Cycle"</div>
+              <div class="row g-2 align-items-center mt-2">
+                <div class="col-7 vc-label-sm" data-i18n="avancado.tempo_on">Tempo ligado (ms):</div>
+                <div class="col-5"><input class="vc-input" type="number" min="1" max="255" data-par="A12C0000" id="vcAdvSirTimeOn"></div>
+              </div>
+              <div class="row g-2 align-items-center">
+                <div class="col-7 vc-label-sm" data-i18n="avancado.tempo_off">Tempo desligado (ms):</div>
+                <div class="col-5"><input class="vc-input" type="number" min="10" max="2550" step="10" data-par="A12D0000" id="vcAdvSirTimeOff"></div>
+              </div>
+            </div>
+            <!-- Tons da sirene -->
+            <div class="col-md-7">
+              <div class="vc-subhead text-center" data-i18n="avancado.tons">Tons da sirene</div>
+              <div class="row g-2 mt-2">
+                <div class="col-6 text-center">
+                  <div class="vc-tone-badge">1</div>
+                  <select class="vc-select mb-1" id="vcAdvSirFreq1"></select>
+                  <select class="vc-select mb-1" id="vcAdvSirTime1"></select>
+                  <div class="d-flex justify-content-center gap-3 mt-1">
+                    <label class="vc-radio-row mb-0"><input type="radio" name="vcAdvSirEdge1" value="edge"><span data-i18n="avancado.borda">Borda</span></label>
+                    <label class="vc-radio-row mb-0"><input type="radio" name="vcAdvSirEdge1" value="ramp"><span data-i18n="avancado.rampa">Rampa</span></label>
+                  </div>
+                </div>
+                <div class="col-6 text-center">
+                  <div class="vc-tone-badge">2</div>
+                  <select class="vc-select mb-1" id="vcAdvSirFreq2"></select>
+                  <select class="vc-select mb-1" id="vcAdvSirTime2"></select>
+                  <div class="d-flex justify-content-center gap-3 mt-1">
+                    <label class="vc-radio-row mb-0"><input type="radio" name="vcAdvSirEdge2" value="edge"><span data-i18n="avancado.borda">Borda</span></label>
+                    <label class="vc-radio-row mb-0"><input type="radio" name="vcAdvSirEdge2" value="ramp"><span data-i18n="avancado.rampa">Rampa</span></label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /vcSysAvancado -->
+
+    <!-- Logger full-width (mesma estrutura da tela Status) -->
+    <div class="row g-3 mt-1" data-vc-page-logger>
+      <div class="col-12">
+        <div class="vc-card">
+          <div class="vc-logger-header"
+               data-i18n-title="modal.logger_tooltip"
+               title="Exibe a comunicaÃ§Ã£o entre o VettiConfig, servidor e a central.">
+            <span data-i18n="modal.logger">Logger</span>
+            <button class="btn btn-sm text-white p-0" onclick="vcClearLog()"
+                    data-i18n-title="modal.clear_log" title="Limpar logger">
+              <i class="bi bi-trash3" style="font-size:15px;"></i>
+            </button>
+          </div>
+          <div class="vc-logger-body" id="vcLoggerBody"
+               style="max-height:240px;overflow:auto;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RodapÃ© Brasil unificado -->
+  <div class="vc-app-footer">
+    <svg viewBox="0 0 24 16" width="22" height="14" aria-hidden="true">
+      <rect width="24" height="16" fill="#009C3B"/>
+      <polygon points="12,2 22,8 12,14 2,8" fill="#FFDF00"/>
+      <circle cx="12" cy="8" r="3.2" fill="#002776"/>
+    </svg>
+    <span data-i18n="configs.feito_brasil">Desenvolvido e Produzido no Brasil</span>
+  </div>
+</div><!-- /vc-main -->
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     TIME PICKER (relÃ³gio Android-style)
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<div class="vc-info-backdrop" id="vcTpBackdrop">
+  <div class="vc-tp-dialog" role="dialog" aria-modal="true">
+    <div class="vc-tp-header">
+      <button class="vc-tp-segment active" id="vcTpHourBtn"   type="button">00</button>
+      <span    class="vc-tp-sep">:</span>
+      <button class="vc-tp-segment"        id="vcTpMinuteBtn" type="button">00</button>
+    </div>
+    <div class="vc-tp-clock">
+      <svg id="vcTpSvg" viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="vc-tp-footer">
+      <button class="vc-btn outline" type="button" id="vcTpCancelBtn">
+        <span data-i18n="common.cancel">Cancelar</span>
+      </button>
+      <button class="vc-btn" type="button" id="vcTpOkBtn">
+        <span data-i18n="common.ok">Ok</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal informativo genÃ©rico (reuso da Status) -->
+<div class="vc-info-backdrop" id="vcInfoBackdrop">
+  <div class="vc-info-dialog" role="dialog" aria-modal="true" aria-labelledby="vcInfoTitle">
+    <div class="vc-info-header" id="vcInfoTitle" data-i18n="common.info">Informativo</div>
+    <div class="vc-info-body"   id="vcInfoBody">---</div>
+    <div class="vc-info-footer">
+      <button class="vc-btn" type="button" onclick="vcCloseInfo()">
+        <span data-i18n="common.ok">Ok</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="../vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="../js/vetticonfig.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof vcRenderFullSidebar === 'function') vcRenderFullSidebar('sistema');
+    var t0 = Date.now();
+    VCi18n.init(function () {
+      if (typeof vcSistemaInit === 'function') vcSistemaInit();
+      var elapsed = Date.now() - t0;
+      setTimeout(vcHideSplash, Math.max(0, 350 - elapsed));
+    });
+    setTimeout(vcHideSplash, 3000);
+  });
+</script>
+
+</body>
+</html>

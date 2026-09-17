@@ -1,0 +1,57 @@
+# Dependências (regeráveis com npm install)
+node_modules/
+
+# Build do Electron
+dist/
+out/
+build/Release/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.*
+!.env.example
+*.p12
+*.pfx
+*.key
+
+# Referencias locais de firmware e arquivos de analise
+.codex-analysis/
+
+# Figma export (arquivo grande, regerável via API)
+figma/figma-export.json
+figma/figma-images.json
+
+# Claude Code
+.claude/
+
+# Projeto piloto mantido localmente como referência (não versionado)
+antigo/
+
+# Documentação interna versiona; PDFs/DOCX do fornecedor (protocolo
+# proprietário) ficam de fora — assim como o backup local
+# comandos-que-faltam_encontrado.md (redundante: já mesclado no oficial).
+docs/*.pdf
+docs/*.docx
+docs/*.doc
+docs/comandos-que-faltam_encontrado.md
+
+# Exportação do Figma (~21MB, regerável; referência local)
+figma-export/
+
+# VettiConfig Java atual — código-fonte da versão em produção, mantido
+# localmente apenas como referência durante o port para Electron.
+versaoultima/

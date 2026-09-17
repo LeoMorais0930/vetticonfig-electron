@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:;">
+  <title>VettiConfig — Zona compartilhada</title>
+  <link href="../vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <link href="../assets/fonts/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="../css/vetticonfig.css" rel="stylesheet">
+  <link rel="preload" href="../i18n/pt-BR.json" as="fetch" type="application/json" crossorigin>
+  <script src="../i18n/vetticonfig-i18n.js" defer></script>
+  <script>try{if(localStorage.getItem('vc_theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(_){}</script>
+  <style>
+    #vcSplash{position:fixed;inset:0;z-index:9999;background:#EEF0F3;display:flex;align-items:center;justify-content:center;transition:opacity .35s ease}
+    html[data-theme="dark"] #vcSplash{background:#131820}
+    #vcSplash.vc-splash-hidden{opacity:0;pointer-events:none}
+    #vcSplashMark{width:132px;height:132px;border-radius:50%;background:radial-gradient(circle at center,#0076CB 0%,#003A63 70%);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 0 0 8px rgba(0,118,203,.1),0 0 0 18px rgba(0,118,203,.05),0 12px 36px rgba(0,58,99,.25);animation:vcSplashBreathe 3.2s ease-in-out infinite}
+    #vcSplashMark::before,#vcSplashMark::after{content:'';position:absolute;inset:-8px;border-radius:50%;border:2px solid #0076CB;opacity:0;animation:vcSplashPulse 2.6s ease-out infinite}
+    #vcSplashMark::after{animation-delay:1.3s}
+    #vcSplashLogo{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-style:italic;font-weight:800;color:#fff;font-size:28px;letter-spacing:4px;line-height:1}
+    @keyframes vcSplashPulse{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.55);opacity:0}}
+    @keyframes vcSplashBreathe{0%,100%{box-shadow:0 0 0 8px rgba(0,118,203,.1),0 0 0 18px rgba(0,118,203,.05),0 12px 36px rgba(0,58,99,.25)}50%{box-shadow:0 0 0 8px rgba(0,118,203,.16),0 0 0 22px rgba(0,118,203,.08),0 12px 36px rgba(0,58,99,.25)}}
+  </style>
+</head>
+<body>
+<div id="vcSplash"><div id="vcSplashMark"><span id="vcSplashLogo">VETTI</span></div></div>
+<button class="vc-sidebar-toggler" onclick="vcToggleSidebar()"><i class="bi bi-list"></i></button>
+<div class="vc-overlay" id="vcOverlay" onclick="vcToggleSidebar()"></div>
+
+<nav class="vc-sidebar" id="vcSidebar">
+  <div class="vc-logo"><div class="vc-logo-text">VETTI</div><div class="vc-logo-line"></div></div>
+  <ul class="vc-nav" id="vcSidebarNav"></ul>
+  <div class="vc-sidebar-bottom">
+    <a class="vc-nav-link" href="configuracoes.html">
+      <span class="vc-nav-icon"><i class="bi bi-gear-fill"></i></span>
+      <span data-i18n="nav.configuracoes">Configurações</span>
+    </a>
+  </div>
+</nav>
+
+<div class="vc-main">
+  <div class="vc-topbar d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <button class="vc-btn-conn" id="vcBtnDesconectar" data-i18n-title="status.desconectar_tooltip" title="Encerra a sessão e volta para a tela inicial.">
+      <i class="bi bi-plug"></i><span data-i18n="status.desconectar">Desconectar</span>
+    </button>
+    <button class="vc-btn-pdf" id="vcBtnPdf" data-i18n-title="status.pdf_tooltip" title="Gera relatório PDF/CSV"><i class="bi bi-file-earmark-pdf"></i></button>
+  </div>
+
+  <div class="vc-header">
+    <div class="row align-items-end g-2">
+      <div class="col-lg-8 col-md-7">
+        <div class="vc-central-name" id="vcCentralName">---</div>
+        <div class="vc-central-model" id="vcCentralModel">---</div>
+      </div>
+      <div class="col-lg-4 col-md-5">
+        <div class="vc-central-ip"  id="vcCentralIp">IP: ---</div>
+        <div class="vc-central-mac" id="vcCentralMac">MAC: ---</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs: 2 abas conforme Figma (Dispositivos, Alarme) -->
+  <div class="vc-sys-tabs" role="tablist">
+    <button class="vc-sys-tab active" data-tab="vcZcDispositivos" type="button" data-i18n="particao.tab_dispositivos">Dispositivos</button>
+    <button class="vc-sys-tab"        data-tab="vcZcAlarme"       type="button" data-i18n="particao.tab_alarme">Alarme</button>
+  </div>
+
+  <div class="container-fluid px-3 pb-3 flex-grow-1">
+
+    <!-- ABA — DISPOSITIVOS (mesma estrutura da Partição/Dispositivos) -->
+    <div class="vc-sys-panel active" id="vcZcDispositivos" data-loaded="0">
+      <div class="row g-3">
+        <div class="col-xl-6">
+          <div class="vc-card mb-3" data-card="zc-disp-lista">
+            <div class="vc-card-header d-flex align-items-center justify-content-between">
+              <span data-i18n="dispositivos.lista">Lista de dispositivos</span>
+              <button class="btn btn-sm text-white p-0" id="vcZcDispBtnFilter"
+                      data-i18n-title="dispositivos.filtro" title="Filtro"><i class="bi bi-funnel-fill" style="font-size:18px;"></i></button>
+            </div>
+            <div class="vc-card-body p-0">
+              <div class="vc-disp-grid-head px-2 py-1 small text-muted">
+                <div data-i18n="scan.zona">Zona</div>
+                <div data-i18n="scan.nome">Nome</div>
+                <div data-i18n="scan.tipo">Tipo</div>
+                <div data-i18n="scan.versao">Versão</div>
+              </div>
+              <div id="vcZcDispList" class="vc-disp-list" style="max-height:520px;overflow:auto;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-6">
+          <div class="vc-card mb-3" data-card="zc-disp-config">
+            <div class="vc-card-header" data-i18n="pdisp.config">Configurações</div>
+            <div class="vc-card-body">
+              <p class="text-muted m-0" data-i18n="dispositivos.selecione">Selecione um dispositivo na lista para editar.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABA — ALARME (parâmetros + temporização) -->
+    <div class="vc-sys-panel" id="vcZcAlarme" data-loaded="0">
+      <div class="row g-3">
+
+        <!-- Parâmetros de arme -->
+        <div class="col-xl-6">
+          <div class="vc-card mb-3" data-card="zc-alarme-arme">
+            <div class="vc-card-header" data-i18n="particao.par_arme">Parâmetros de arme</div>
+            <div class="vc-card-body">
+              <div class="vc-subhead" data-i18n="zona.associar_particoes">Associar partições</div>
+              <div class="row g-1 mt-1">
+                <div class="col-6"><label class="form-check"><input type="checkbox" class="form-check-input" data-par-todo="zc_part_1"><span data-i18n="status.particao_n" data-i18n-n="1">Partição 1</span></label></div>
+                <div class="col-6"><label class="form-check"><input type="checkbox" class="form-check-input" data-par-todo="zc_part_2"><span data-i18n="status.particao_n" data-i18n-n="2">Partição 2</span></label></div>
+                <div class="col-6"><label class="form-check"><input type="checkbox" class="form-check-input" data-par-todo="zc_part_3"><span data-i18n="status.particao_n" data-i18n-n="3">Partição 3</span></label></div>
+                <div class="col-6"><label class="form-check"><input type="checkbox" class="form-check-input" data-par-todo="zc_part_4"><span data-i18n="status.particao_n" data-i18n-n="4">Partição 4</span></label></div>
+                <div class="col-6"><label class="form-check"><input type="checkbox" class="form-check-input" data-par-todo="zc_part_5"><span data-i18n="status.particao_n" data-i18n-n="5">Partição 5</span></label></div>
+                <div class="col-6"><label class="form-check"><input type="checkbox" class="form-check-input" data-par-todo="zc_part_6"><span data-i18n="status.particao_n" data-i18n-n="6">Partição 6</span></label></div>
+              </div>
+
+              <label class="form-check mt-3">
+                <input type="checkbox" class="form-check-input" data-par="91130000" data-par-bool>
+                <span data-i18n="particao.sirene_tamper">Acionar a sirene na violação da chave tamper dos dispositivos.</span>
+              </label>
+
+              <div class="vc-card vc-card-inner mt-3">
+                <div class="vc-card-body py-2">
+                  <label class="vc-toggle-row">
+                    <input type="checkbox" class="vc-switch" data-par-todo="zc_auto_isolar" data-par-bool>
+                    <span data-i18n="particao.auto_isolar">Auto isolar</span>
+                  </label>
+                  <div class="row g-2 mt-2">
+                    <div class="col-md-6">
+                      <label class="vc-label-sm" data-i18n="particao.intervalo_min">Intervalo (1 a 60 minutos):</label>
+                      <input class="vc-input" type="number" min="1" max="60" data-par-todo="zc_auto_isolar_intervalo">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="vc-label-sm" data-i18n="particao.qtd_eventos">Quantidade de eventos gerados (2 a 50):</label>
+                      <input class="vc-input" type="number" min="2" max="50" data-par-todo="zc_auto_isolar_eventos">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="vc-card-footer">
+              <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+              <button class="vc-btn"         type="button" data-action="save"><span data-i18n="common.save">Gravar</span></button>
+            </div>
+          </div>
+
+          <!-- Temporização sistema -->
+          <div class="vc-card mb-3" data-card="zc-temp-sis">
+            <div class="vc-card-header" data-i18n="psup.temp_sistema">Temporização sistema</div>
+            <div class="vc-card-body">
+              <div class="row g-2">
+                <div class="col-md-7"><label class="vc-label-sm" data-i18n="psup.tempo_entrada">Tempo de entrada e seguidora (0 a 240 segundos):</label></div>
+                <div class="col-md-5"><input class="vc-input" type="number" min="0" max="240" data-par-todo="zc_tempo_entrada"></div>
+                <div class="col-md-7"><label class="vc-label-sm" data-i18n="psup.tempo_saida">Tempo de saída (0 a 240 segundos):</label></div>
+                <div class="col-md-5"><input class="vc-input" type="number" min="0" max="240" data-par-todo="zc_tempo_saida"></div>
+                <div class="col-md-7"><label class="vc-label-sm" data-i18n="psup.restaurar_entrada">Restauração do tempo de entrada após disparo:</label></div>
+                <div class="col-md-5"><input class="vc-input" type="number" data-par-todo="zc_restaurar_entrada"></div>
+              </div>
+            </div>
+            <div class="vc-card-footer">
+              <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+              <button class="vc-btn"         type="button" data-action="save"><span data-i18n="common.save">Gravar</span></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Temporização dispositivos -->
+        <div class="col-xl-6">
+          <div class="vc-card mb-3" data-card="zc-temp-disp">
+            <div class="vc-card-header" data-i18n="psup.temp_dispositivos">Temporização dispositivos</div>
+            <div class="vc-card-body">
+              <label class="vc-label-sm" data-i18n="psup.rearme_lr">Tempo de rearme dos sensores de presença LR com a central desarmada</label>
+              <div class="d-flex gap-2 flex-wrap mt-1 mb-3">
+                <label class="vc-radio-row"><input type="radio" name="vcZcRearmeLr" data-par-todo="zc_rearme_lr" value="0"><span data-i18n="psup.imediato">Imediato</span></label>
+                <label class="vc-radio-row"><input type="radio" name="vcZcRearmeLr" data-par-todo="zc_rearme_lr" value="15"><span>15 s</span></label>
+                <label class="vc-radio-row"><input type="radio" name="vcZcRearmeLr" data-par-todo="zc_rearme_lr" value="30"><span>30 s</span></label>
+                <label class="vc-radio-row"><input type="radio" name="vcZcRearmeLr" data-par-todo="zc_rearme_lr" value="60"><span>1 min</span></label>
+                <label class="vc-radio-row"><input type="radio" name="vcZcRearmeLr" data-par-todo="zc_rearme_lr" value="120"><span>2 min</span></label>
+                <label class="vc-radio-row"><input type="radio" name="vcZcRearmeLr" data-par-todo="zc_rearme_lr" value="240"><span>4 min</span></label>
+              </div>
+
+              <div class="row g-2">
+                <div class="col-md-7"><label class="vc-label-sm" data-i18n="psup.tempo_pareamento">Tempo de pareamento do sensor de presença:</label></div>
+                <div class="col-md-5"><input class="vc-input" type="number" data-par-todo="zc_tempo_pareamento"></div>
+                <div class="col-md-7"><label class="vc-label-sm" data-i18n="psup.tempo_disparo">Tempo de disparo da sirene:</label></div>
+                <div class="col-md-5"><input class="vc-input" type="number" min="1" max="10" data-par-todo="zc_tempo_disparo"></div>
+                <div class="col-md-7"><label class="vc-label-sm" data-i18n="psup.num_ciclos">Número máximo de ciclos da sirene:</label></div>
+                <div class="col-md-5"><input class="vc-input" type="number" min="1" max="240" data-par-todo="zc_num_ciclos"></div>
+                <div class="col-md-7"><label class="vc-label-sm" data-i18n="psup.tempo_portao">Tempo da função portão:</label></div>
+                <div class="col-md-5"><input class="vc-input" type="number" min="1" max="240" data-par-todo="zc_tempo_portao"></div>
+              </div>
+
+              <div class="vc-subhead mt-3" data-i18n="psup.tempo_grupo">Tempo para o grupo de zonas pareadas (1 a 1080 minutos - 0 nunca limpar):</div>
+              <div class="d-flex align-items-center gap-2 mt-1">
+                <label class="vc-toggle-row mb-0">
+                  <input type="checkbox" class="vc-switch" data-par-todo="zc_minutos" data-par-bool>
+                  <span data-i18n="psup.minutos">Minutos</span>
+                </label>
+                <label class="vc-toggle-row mb-0">
+                  <input type="checkbox" class="vc-switch" data-par-todo="zc_segundos" data-par-bool>
+                  <span data-i18n="psup.segundos">Segundos</span>
+                </label>
+              </div>
+            </div>
+            <div class="vc-card-footer">
+              <button class="vc-btn outline" type="button" data-action="cancel"><span data-i18n="common.cancel">Cancelar</span></button>
+              <button class="vc-btn"         type="button" data-action="save"><span data-i18n="common.save">Gravar</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logger -->
+    <div class="row g-3 mt-1" data-vc-page-logger><div class="col-12">
+      <div class="vc-card">
+        <div class="vc-logger-header" data-i18n-title="modal.logger_tooltip" title="Exibe a comunicação entre o VettiConfig, servidor e a central.">
+          <span data-i18n="modal.logger">Logger</span>
+          <button class="btn btn-sm text-white p-0" onclick="vcClearLog()" data-i18n-title="modal.clear_log" title="Limpar logger">
+            <i class="bi bi-trash3" style="font-size:15px;"></i>
+          </button>
+        </div>
+        <div class="vc-logger-body" id="vcLoggerBody" style="max-height:240px;overflow:auto;"></div>
+      </div>
+    </div></div>
+
+  </div>
+
+  <!-- Rodapé Brasil unificado -->
+  <div class="vc-app-footer">
+    <svg viewBox="0 0 24 16" width="22" height="14" aria-hidden="true">
+      <rect width="24" height="16" fill="#009C3B"/>
+      <polygon points="12,2 22,8 12,14 2,8" fill="#FFDF00"/>
+      <circle cx="12" cy="8" r="3.2" fill="#002776"/>
+    </svg>
+    <span data-i18n="configs.feito_brasil">Desenvolvido e Produzido no Brasil</span>
+  </div>
+</div>
+
+<div class="vc-info-backdrop" id="vcInfoBackdrop">
+  <div class="vc-info-dialog" role="dialog" aria-modal="true" aria-labelledby="vcInfoTitle">
+    <div class="vc-info-header" id="vcInfoTitle" data-i18n="common.info">Informativo</div>
+    <div class="vc-info-body"   id="vcInfoBody">---</div>
+    <div class="vc-info-footer"><button class="vc-btn" type="button" onclick="vcCloseInfo()"><span data-i18n="common.ok">Ok</span></button></div>
+  </div>
+</div>
+
+<script src="../vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="../js/vetticonfig.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof vcRenderFullSidebar === 'function') vcRenderFullSidebar('zona');
+    var t0 = Date.now();
+    VCi18n.init(function () {
+      if (typeof vcZonaInit === 'function') vcZonaInit();
+      var elapsed = Date.now() - t0;
+      setTimeout(vcHideSplash, Math.max(0, 350 - elapsed));
+    });
+    setTimeout(vcHideSplash, 3000);
+  });
+</script>
+</body>
+</html>

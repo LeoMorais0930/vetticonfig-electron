@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:;">
+  <title>VettiConfig - Conexao Remota</title>
+  <link href="../vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <link href="../assets/fonts/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="../css/vetticonfig.css" rel="stylesheet">
+  <link rel="preload" href="../i18n/pt-BR.json" as="fetch" type="application/json" crossorigin>
+  <script src="../i18n/vetticonfig-i18n.js" defer></script>
+
+  <script>try{if(localStorage.getItem('vc_theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(_){}</script>
+  <style>
+    #vcSplash{position:fixed;inset:0;z-index:9999;background:#EEF0F3;display:flex;align-items:center;justify-content:center;transition:opacity .35s ease}
+    html[data-theme="dark"] #vcSplash{background:#131820}
+    #vcSplash.vc-splash-hidden{opacity:0;pointer-events:none}
+    #vcSplashMark{width:132px;height:132px;border-radius:50%;background:radial-gradient(circle at center,#0076CB 0%,#003A63 70%);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 0 0 8px rgba(0,118,203,.1),0 0 0 18px rgba(0,118,203,.05),0 12px 36px rgba(0,58,99,.25);animation:vcSplashBreathe 3.2s ease-in-out infinite}
+    #vcSplashMark::before,#vcSplashMark::after{content:'';position:absolute;inset:-8px;border-radius:50%;border:2px solid #0076CB;opacity:0;animation:vcSplashPulse 2.6s ease-out infinite}
+    #vcSplashMark::after{animation-delay:1.3s}
+    #vcSplashLogo{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-style:italic;font-weight:800;color:#fff;font-size:28px;letter-spacing:4px;line-height:1}
+    @keyframes vcSplashPulse{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.55);opacity:0}}
+    @keyframes vcSplashBreathe{0%,100%{box-shadow:0 0 0 8px rgba(0,118,203,.1),0 0 0 18px rgba(0,118,203,.05),0 12px 36px rgba(0,58,99,.25)}50%{box-shadow:0 0 0 8px rgba(0,118,203,.16),0 0 0 22px rgba(0,118,203,.08),0 12px 36px rgba(0,58,99,.25)}}
+  </style>
+</head>
+<body>
+
+<div id="vcSplash"><div id="vcSplashMark"><span id="vcSplashLogo">VETTI</span></div></div>
+
+<button class="vc-sidebar-toggler" onclick="vcToggleSidebar()"><i class="bi bi-list"></i></button>
+<div class="vc-overlay" id="vcOverlay" onclick="vcToggleSidebar()"></div>
+
+<nav class="vc-sidebar" id="vcSidebar">
+  <div class="vc-logo">
+    <div class="vc-logo-text">VETTI</div>
+    <div class="vc-logo-line"></div>
+  </div>
+
+  <div style="flex:1;"></div>
+
+</nav>
+
+<main class="vc-main">
+  <div class="vc-topbar simple d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <a class="vc-btn outline" href="../index.html">
+      <i class="bi bi-arrow-left"></i>
+      <span data-i18n="remote.back">Voltar</span>
+    </a>
+    <div class="vc-remote-kicker">
+      <i class="bi bi-globe2"></i>
+      <span data-i18n="modal.conn_remota">Conexao Remota</span>
+    </div>
+  </div>
+
+  <section class="vc-remote-page active" id="vcPanelRemota">
+    <header class="vc-remote-page-head">
+      <div>
+        <h1 data-i18n="remote.title">Conexao Remota</h1>
+        <p data-i18n="remote.subtitle">Acesse uma central pelo servidor de monitoramento usando MAC, conta e senha da central.</p>
+      </div>
+      <div class="vc-remote-page-badge">
+        <i class="bi bi-router-fill"></i>
+        <span data-i18n="remote.offline_runtime">Runtime offline</span>
+      </div>
+    </header>
+
+    <div class="vc-remote-page-grid">
+      <section class="vc-remote-panel">
+        <div class="vc-card-header">
+          <span data-i18n="remote.connection_data">Dados da conexao</span>
+        </div>
+        <div class="vc-card-body">
+          <div class="vc-remote-form vc-remote-form-full">
+            <div class="row g-3 align-items-end">
+              <div class="col-lg-4 col-md-6">
+                <label class="vc-label mb-1 d-block" data-i18n="modal.mac">MAC:</label>
+                <input class="vc-input" id="vcRemoteMac" placeholder="D8-80-39-AD-03-01">
+              </div>
+              <div class="col-lg-2 col-md-6">
+                <label class="vc-label mb-1 d-block" data-i18n="modal.conta">Conta:</label>
+                <input class="vc-input" id="vcRemoteConta" placeholder="0001">
+              </div>
+              <div class="col-lg-4 col-md-8">
+                <label class="vc-label mb-1 d-block" data-i18n="modal.url">URL:</label>
+                <input class="vc-input" id="vcRemoteUrl" placeholder="vetti.iobi.ddns.info">
+              </div>
+              <div class="col-lg-2 col-md-4">
+                <label class="vc-label mb-1 d-block" data-i18n="modal.porta">Porta:</label>
+                <input class="vc-input" id="vcRemotePorta" placeholder="9018">
+              </div>
+              <div class="col-lg-4 col-md-6">
+                <label class="vc-label mb-1 d-block" data-i18n="modal.nome">Nome:</label>
+                <input class="vc-input" id="vcRemoteNome" placeholder="Vetti">
+              </div>
+              <div class="col-lg-4 col-md-6">
+                <label class="vc-label mb-1 d-block" data-i18n="modal.senha">Senha:</label>
+                <div class="vc-input-wrap">
+                  <input type="password" class="vc-input" id="vcRemoteSenha" placeholder="****">
+                  <button type="button" class="vc-input-eye" onclick="vcTogglePassword('vcRemoteSenha', this)"
+                          data-i18n-title="common.show_password" title="Mostrar/ocultar senha">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="col-lg-4 col-md-12">
+                <div class="vc-remote-actions">
+                  <button class="vc-btn" id="vcBtnConectarRemoto"
+                          data-i18n-title="modal.conectar_tooltip"
+                          title="Inicia a comunicacao com a central selecionada.">
+                    <i class="bi bi-plug-fill"></i>
+                    <span data-i18n="modal.conectar">Conectar</span>
+                  </button>
+                  <button class="vc-btn outline" id="vcBtnAddRemoto"
+                          data-i18n-title="modal.add_remoto"
+                          title="Salvar esta central na lista de conexoes">
+                    <i class="bi bi-plus-lg"></i>
+                    <span data-i18n="remote.save_to_list">Salvar</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="vc-remote-panel">
+        <div class="vc-remote-saved-header">
+          <span data-i18n="modal.conn_salvas">Conexoes salvas</span>
+        </div>
+        <div class="vc-remote-saved-body vc-remote-saved-tall" id="vcSavedList"></div>
+      </aside>
+    </div>
+
+    <section class="vc-remote-panel">
+      <div class="vc-logger-header"
+           data-i18n-title="modal.logger_tooltip"
+           title="Exibe a comunicacao entre o VettiConfig, servidor e a central.">
+        <span data-i18n="modal.logger">Logger</span>
+        <button class="btn btn-sm text-white p-0" onclick="vcClearLog()"
+                data-i18n-title="modal.clear_log" title="Limpar logger">
+          <i class="bi bi-trash3" style="font-size:15px;"></i>
+        </button>
+      </div>
+      <div class="vc-logger-body vc-remote-log" id="vcLoggerBodyRemoto"
+           data-i18n="modal.aguardando">Aguardando conexao...</div>
+    </section>
+  </section>
+
+  <div class="vc-app-footer">
+    <svg viewBox="0 0 24 16" width="22" height="14" aria-hidden="true">
+      <rect width="24" height="16" fill="#009C3B"/>
+      <polygon points="12,2 22,8 12,14 2,8" fill="#FFDF00"/>
+      <circle cx="12" cy="8" r="3.2" fill="#002776"/>
+    </svg>
+    <span data-i18n="configs.feito_brasil">Desenvolvido e Produzido no Brasil</span>
+  </div>
+</main>
+
+<script src="../vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="../js/vetticonfig.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var t0 = Date.now();
+    VCi18n.init(function () {
+      var wait = Math.max(0, 450 - (Date.now() - t0));
+      setTimeout(vcHideSplash, wait);
+    });
+  });
+</script>
+</body>
+</html>

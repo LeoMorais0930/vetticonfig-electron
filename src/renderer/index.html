@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VettiConfig</title>
+  <link href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/fonts/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/vetticonfig.css" rel="stylesheet">
+  <!-- Preload do idioma default — faz o fetch começar em paralelo com o resto -->
+  <link rel="preload" href="i18n/pt-BR.json" as="fetch" type="application/json" crossorigin>
+  <script src="i18n/vetticonfig-i18n.js" defer></script>
+
+  <!-- ═══ SPLASH SCREEN ═══════════════════════════════════════
+       CSS inline aqui dentro para o splash aparecer ANTES do
+       bootstrap/vetticonfig.css terminar de carregar. Sem flash
+       de "tela morta" durante o boot do renderer Electron. -->
+  <script>try{if(localStorage.getItem('vc_theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(_){}</script>
+  <style>
+    #vcSplash{position:fixed;inset:0;z-index:9999;background:#EEF0F3;display:flex;align-items:center;justify-content:center;transition:opacity .35s ease}
+    html[data-theme="dark"] #vcSplash{background:#131820}
+    #vcSplash.vc-splash-hidden{opacity:0;pointer-events:none}
+    #vcSplashMark{width:132px;height:132px;border-radius:50%;background:radial-gradient(circle at center,#0076CB 0%,#003A63 70%);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 0 0 8px rgba(0,118,203,.1),0 0 0 18px rgba(0,118,203,.05),0 12px 36px rgba(0,58,99,.25);animation:vcSplashBreathe 3.2s ease-in-out infinite}
+    #vcSplashMark::before,#vcSplashMark::after{content:'';position:absolute;inset:-8px;border-radius:50%;border:2px solid #0076CB;opacity:0;animation:vcSplashPulse 2.6s ease-out infinite}
+    #vcSplashMark::after{animation-delay:1.3s}
+    #vcSplashLogo{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-style:italic;font-weight:800;color:#fff;font-size:28px;letter-spacing:4px;line-height:1}
+    @keyframes vcSplashPulse{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.55);opacity:0}}
+    @keyframes vcSplashBreathe{0%,100%{box-shadow:0 0 0 8px rgba(0,118,203,.1),0 0 0 18px rgba(0,118,203,.05),0 12px 36px rgba(0,58,99,.25)}50%{box-shadow:0 0 0 8px rgba(0,118,203,.16),0 0 0 22px rgba(0,118,203,.08),0 12px 36px rgba(0,58,99,.25)}}
+  </style>
+</head>
+<body>
+
+<!-- Splash — escondido pelo JS após VCi18n.init -->
+<div id="vcSplash"><div id="vcSplashMark"><span id="vcSplashLogo">VETTI</span></div></div>
+
+<button class="vc-sidebar-toggler" onclick="vcToggleSidebar()"><i class="bi bi-list"></i></button>
+<div class="vc-overlay" id="vcOverlay" onclick="vcToggleSidebar()"></div>
+
+<!-- ── SIDEBAR — minimal (sem central conectada) ─────────── -->
+<nav class="vc-sidebar" id="vcSidebar">
+  <div class="vc-logo">
+    <div class="vc-logo-text">VETTI</div>
+    <div class="vc-logo-line"></div>
+  </div>
+
+  <div style="flex:1;"></div>
+
+</nav>
+
+<!-- ── MAIN — Hero centralizado ──────────────────────────── -->
+<div class="vc-main">
+
+  <div class="vc-empty">
+    <div class="vc-hero">
+
+      <!-- Marca pulsante (efeito radar) -->
+      <div class="vc-hero-mark" aria-hidden="true">
+        <span class="vc-hero-logo">VETTI</span>
+      </div>
+
+      <h1 class="vc-hero-title" data-i18n="welcome.title">Bem-vindo ao VettiConfig</h1>
+      <p  class="vc-hero-subtitle" data-i18n="welcome.subtitle">
+        Configure e monitore suas centrais de alarme em um só lugar.
+        Comece criando uma nova conexão local ou remota.
+      </p>
+
+      <button class="vc-hero-cta" id="vcBtnNovaConexao" onclick="vcOpenModal()">
+        <i class="bi bi-plug-fill"></i>
+        <span data-i18n="status.nova_conexao">Nova Conexão</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Rodapé Brasil unificado -->
+  <div class="vc-app-footer">
+    <svg viewBox="0 0 24 16" width="22" height="14" aria-hidden="true">
+      <rect width="24" height="16" fill="#009C3B"/>
+      <polygon points="12,2 22,8 12,14 2,8" fill="#FFDF00"/>
+      <circle cx="12" cy="8" r="3.2" fill="#002776"/>
+    </svg>
+    <span data-i18n="configs.feito_brasil">Desenvolvido e Produzido no Brasil</span>
+  </div>
+</div><!-- /main -->
+
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL — CONEXÃO  (totalmente internacionalizado)
+     ══════════════════════════════════════════════════════ -->
+<div class="vc-modal-backdrop" id="vcModalConn">
+  <div class="vc-modal" role="dialog" aria-modal="true" aria-label="Nova Conexão">
+
+    <!-- Tabs Local / Remota -->
+    <div class="vc-modal-tabs">
+      <button class="vc-tab active" data-tab="vcPanelLocal">
+        <span class="icon"><i class="bi bi-pc-display-horizontal"></i></span>
+        <span data-i18n="modal.conn_local">Conexão Local</span>
+      </button>
+      <button class="vc-tab" data-tab="vcPanelRemota">
+        <span class="icon d-flex gap-1 align-items-center">
+          <i class="bi bi-laptop"></i><i class="bi bi-globe2"></i>
+        </span>
+        <span data-i18n="modal.conn_remota">Conexão Remota</span>
+      </button>
+      <button class="vc-tab" data-tab="vcPanelBackup">
+        <span class="icon"><i class="bi bi-arrow-down-up"></i></span>
+        <span data-i18n="modal.backup_conexoes">Backup de conexões</span>
+      </button>
+      <button class="vc-tab ms-auto" style="min-width:unset;padding:10px 16px;"
+              onclick="vcCloseModal()" data-i18n-title="modal.fechar" title="Fechar">
+        <span class="icon"><i class="bi bi-x-lg"></i></span>
+      </button>
+    </div>
+
+    <div class="vc-modal-body">
+
+      <!-- ───────────── TAB LOCAL ───────────── -->
+      <div class="vc-tab-panel active" id="vcPanelLocal">
+
+        <!-- Lista de centrais -->
+        <div>
+          <div class="vc-conn-list-header">
+            <span data-i18n="modal.centrais_rede">Centrais disponíveis na rede</span>
+            <button class="vc-btn sm" id="vcBtnProcurar"
+                    data-i18n-title="modal.procurar_tooltip"
+                    title="Localiza centrais disponíveis na mesma rede do computador.">
+              <i class="bi bi-arrow-clockwise"></i>
+              <span data-i18n="modal.procurar">Procurar novamente</span>
+            </button>
+          </div>
+          <div class="vc-conn-list-body" id="vcConnList">
+            <!-- Linhas inseridas via vcAddCentral(id, texto) — vetticonfig.js -->
+          </div>
+        </div>
+
+        <!-- Linha: Interface + Senha + Conectar + Code -->
+        <div class="vc-conn-actions">
+          <div style="flex:1;min-width:160px;">
+            <label class="vc-label mb-1 d-block" data-i18n="modal.interface_rede">Interface de rede</label>
+            <select class="vc-select" id="vcSelectInterface">
+              <option value="auto" selected data-i18n="modal.interface_auto">Automático</option>
+            </select>
+          </div>
+          <div style="flex:1;min-width:160px;">
+            <label class="vc-label mb-1 d-block" data-i18n="modal.autenticacao">Autenticação:</label>
+            <div class="vc-input-wrap">
+              <input type="password" class="vc-input" id="vcInputSenha"
+                     data-i18n-placeholder="modal.senha_placeholder"
+                     data-i18n-title="modal.senha_tooltip"
+                     placeholder="Senha da central"
+                     title="Selecione a central desejada para iniciar a conexão.">
+              <button type="button" class="vc-input-eye" onclick="vcTogglePassword('vcInputSenha', this)"
+                      data-i18n-title="common.show_password" title="Mostrar/ocultar senha">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+          <div style="flex:0 0 auto;padding-bottom:1px;">
+            <button class="vc-btn" id="vcBtnConectar"
+                    data-i18n-title="modal.conectar_tooltip"
+                    title="Inicia a comunicação com a central selecionada.">
+              <i class="bi bi-plug-fill"></i> <span data-i18n="modal.conectar">Conectar</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Logger local -->
+        <div>
+          <div class="vc-logger-header"
+               data-i18n-title="modal.logger_tooltip"
+               title="Exibe a comunicação entre o VettiConfig, servidor e a central.">
+            <span data-i18n="modal.logger">Logger</span>
+            <button class="btn btn-sm text-white p-0" onclick="vcClearLog()"
+                    data-i18n-title="modal.clear_log" title="Limpar logger">
+              <i class="bi bi-trash3" style="font-size:15px;"></i>
+            </button>
+          </div>
+          <div class="vc-logger-body" id="vcLoggerBody"
+               data-i18n="modal.aguardando">Aguardando conexão...</div>
+        </div>
+
+      </div><!-- /vcPanelLocal -->
+
+
+      <!-- ───────────── TAB REMOTA ───────────── -->
+      <div class="vc-tab-panel" id="vcPanelRemota">
+
+        <!-- Formulário -->
+        <div class="vc-remote-form">
+          <div class="row g-2 align-items-end">
+            <div class="col-sm-4">
+              <label class="vc-label mb-1 d-block" data-i18n="modal.mac">MAC:</label>
+              <input class="vc-input" id="vcRemoteMac" placeholder="D8-80-39-AD-03-01">
+            </div>
+            <div class="col-sm-2">
+              <label class="vc-label mb-1 d-block" data-i18n="modal.conta">Conta:</label>
+              <input class="vc-input" id="vcRemoteConta" placeholder="0001">
+            </div>
+            <div class="col-sm-4">
+              <label class="vc-label mb-1 d-block" data-i18n="modal.url">URL:</label>
+              <input class="vc-input" id="vcRemoteUrl" placeholder="vetti.iobi.ddns.info">
+            </div>
+            <div class="col-sm-2">
+              <label class="vc-label mb-1 d-block" data-i18n="modal.porta">Porta:</label>
+              <input class="vc-input" id="vcRemotePorta" placeholder="9018">
+            </div>
+            <div class="col-sm-4">
+              <label class="vc-label mb-1 d-block" data-i18n="modal.nome">Nome:</label>
+              <input class="vc-input" id="vcRemoteNome" placeholder="Vetti">
+            </div>
+            <div class="col-sm-4">
+              <label class="vc-label mb-1 d-block" data-i18n="modal.senha">Senha:</label>
+              <div class="vc-input-wrap">
+                <input type="password" class="vc-input" id="vcRemoteSenha" placeholder="****">
+                <button type="button" class="vc-input-eye" onclick="vcTogglePassword('vcRemoteSenha', this)"
+                        data-i18n-title="common.show_password" title="Mostrar/ocultar senha">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
+            </div>
+            <div class="col-sm-auto d-flex gap-2">
+              <button class="vc-btn" id="vcBtnConectarRemoto"
+                      data-i18n-title="modal.conectar_tooltip"
+                      title="Inicia a comunicação com a central selecionada.">
+                <i class="bi bi-plug-fill"></i>
+                <span data-i18n="modal.conectar">Conectar</span>
+              </button>
+              <button class="vc-btn" id="vcBtnAddRemoto" style="padding:6px 10px;"
+                      data-i18n-title="modal.add_remoto"
+                      title="Salvar esta central na lista de conexões">
+                <i class="bi bi-plus-lg"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conexões salvas -->
+        <div>
+          <div class="vc-remote-saved-header">
+            <span data-i18n="modal.conn_salvas">Conexões salvas</span>
+          </div>
+          <div class="vc-remote-saved-body" id="vcSavedList">
+            <!-- Linhas inseridas dinamicamente -->
+          </div>
+        </div>
+
+        <!-- Logger remoto -->
+        <div>
+          <div class="vc-logger-header"
+               data-i18n-title="modal.logger_tooltip"
+               title="Exibe a comunicação entre o VettiConfig, servidor e a central.">
+            <span data-i18n="modal.logger">Logger</span>
+            <button class="btn btn-sm text-white p-0" onclick="vcClearLog()"
+                    data-i18n-title="modal.clear_log" title="Limpar logger">
+              <i class="bi bi-trash3" style="font-size:15px;"></i>
+            </button>
+          </div>
+          <div class="vc-logger-body" id="vcLoggerBodyRemoto"
+               data-i18n="modal.aguardando">Aguardando conexão...</div>
+        </div>
+
+      </div><!-- /vcPanelRemota -->
+
+
+      <!-- ───────────── TAB BACKUP ───────────── -->
+      <div class="vc-tab-panel" id="vcPanelBackup">
+
+        <div class="vc-backup-conn-info" id="vcBackupConnInfo">
+          <div class="vc-backup-conn-row">
+            <i class="bi bi-pc-display-horizontal"></i>
+            <span data-i18n="modal.backup_locais">Conexões locais salvas:</span>
+            <strong id="vcBackupCntLocais">0</strong>
+          </div>
+          <div class="vc-backup-conn-row">
+            <i class="bi bi-globe2"></i>
+            <span data-i18n="modal.backup_remotas">Conexões remotas salvas:</span>
+            <strong id="vcBackupCntRemotas">0</strong>
+          </div>
+        </div>
+
+        <p class="vc-help small mb-3" data-i18n="modal.backup_desc">
+          Exporta todas as conexões salvas (locais e remotas) para um arquivo JSON.
+          Use isso ao trocar de máquina ou pra restaurar conexões perdidas. O arquivo
+          inclui senhas das centrais — guarde com cuidado.
+        </p>
+
+        <div class="d-flex gap-2 flex-wrap mb-3">
+          <button class="vc-btn" type="button" id="vcBtnExportarConns">
+            <i class="bi bi-download"></i>
+            <span data-i18n="modal.backup_exportar">Exportar conexões</span>
+          </button>
+          <button class="vc-btn outline" type="button" id="vcBtnImportarConns">
+            <i class="bi bi-upload"></i>
+            <span data-i18n="modal.backup_importar">Importar conexões</span>
+          </button>
+        </div>
+
+        <!-- Logger do backup -->
+        <div>
+          <div class="vc-logger-header">
+            <span data-i18n="modal.logger">Logger</span>
+            <button class="btn btn-sm text-white p-0" onclick="vcClearLog()"
+                    data-i18n-title="modal.clear_log" title="Limpar logger">
+              <i class="bi bi-trash3" style="font-size:15px;"></i>
+            </button>
+          </div>
+          <div class="vc-logger-body" id="vcLoggerBodyBackup"
+               data-i18n="modal.aguardando">Aguardando ação...</div>
+        </div>
+
+      </div><!-- /vcPanelBackup -->
+
+    </div><!-- /modal-body -->
+  </div><!-- /modal -->
+</div><!-- /backdrop -->
+
+
+<script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="js/vetticonfig.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var t0 = Date.now();
+    VCi18n.init(function () {
+      // Garante 350ms mínimo para a animação ser perceptível, depois esconde.
+      var elapsed = Date.now() - t0;
+      setTimeout(vcHideSplash, Math.max(0, 350 - elapsed));
+    });
+    // Fallback: se o init falhar/demorar demais, tira o splash em 3s.
+    setTimeout(vcHideSplash, 3000);
+  });
+</script>
+
+<!--
+═══════════════════════════════════════════════════════════
+  IDs / hooks disponíveis no modal de Nova Conexão
+  (para o backend de conexão real)
+═══════════════════════════════════════════════════════════
+  ABERTURA / FECHAMENTO:
+    vcOpenModal()  / vcCloseModal()
+
+  TAB LOCAL:
+    vcConnList         — container <div> da lista de centrais (use vcAddCentral)
+    vcSelectInterface  — <select> de interface de rede
+    vcInputSenha       — input senha local
+    vcBtnProcurar      — disparar varredura de rede
+    vcBtnConectar      — disparar conexão local
+    vcLoggerBody       — div onde o vcLog() escreve
+
+  TAB REMOTA:
+    vcRemoteMac / vcRemoteConta / vcRemoteUrl / vcRemotePorta /
+    vcRemoteNome / vcRemoteSenha — campos do form remoto
+    vcBtnBuscar          — busca por MAC
+    vcBtnConectarRemoto  — disparar conexão remota
+    vcBtnAddRemoto       — adicionar nova central salva
+    vcSavedList          — container de conexões salvas
+    vcLoggerBodyRemoto   — logger remoto
+
+  HELPERS JS já existentes em js/vetticonfig.js:
+    vcAddCentral(id, texto) / vcClearCentrais()
+    vcLog(texto) / vcClearLog()
+    vcSet(id, texto) / vcSetHTML(id, html)
+-->
+
+</body>
+</html>

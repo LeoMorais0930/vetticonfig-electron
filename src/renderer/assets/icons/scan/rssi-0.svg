@@ -1,0 +1,16 @@
+<svg width="494" height="476" viewBox="0 0 494 476" fill="none" xmlns="http://www.w3.org/2000/svg">
+<style>
+  .rssi-alert-fill {
+    fill: #FF2C2C;
+    animation: rssiPulseFill 1.8s ease-in-out infinite;
+  }
+  @keyframes rssiPulseFill {
+    0%, 100% { fill: #FF2C2C; opacity: 1; }
+    50% { fill: #FF7A7A; opacity: 0.82; }
+  }
+</style>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M382.842 468.219L485.633 468.982L486.651 11H383.605L382.842 468.219Z" fill="#BDDAFD"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M258.677 467.201L361.469 469.237C365.794 431.835 365.794 173.838 359.434 142.288L259.695 141.016L258.677 467.201Z" fill="#BBDAFD"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M134.259 470L236.796 468.219L238.323 281.973H136.04L134.259 470Z" fill="#BAD9FD"/>
+<path class="rssi-alert-fill" fill-rule="evenodd" clip-rule="evenodd" d="M10.3494 468.473L113.904 468.982L115.176 392.906L10.8582 392.652L10.3494 468.473Z"/>
+</svg>

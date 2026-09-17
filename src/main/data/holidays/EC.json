@@ -1,0 +1,29 @@
+{
+  "schema": "vetticonfig-holidays-1",
+  "country": "EC",
+  "countryName": { "pt-BR": "Equador", "en": "Ecuador", "es-LA": "Ecuador" },
+  "holidays": [
+    { "id": "ec-newyear",        "name": { "pt-BR": "Ano Novo", "en": "New Year's Day", "es-LA": "Año Nuevo" },
+      "month": 1, "day": 1 },
+    { "id": "ec-carnival-mon",   "name": { "pt-BR": "Carnaval (seg.)", "en": "Carnival Mon", "es-LA": "Carnaval (lunes)" },
+      "mobile": "easter-48" },
+    { "id": "ec-carnival-tue",   "name": { "pt-BR": "Carnaval (ter.)", "en": "Carnival Tue", "es-LA": "Carnaval (martes)" },
+      "mobile": "easter-47" },
+    { "id": "ec-good-friday",    "name": { "pt-BR": "Sexta-feira Santa", "en": "Good Friday", "es-LA": "Viernes Santo" },
+      "mobile": "easter-2" },
+    { "id": "ec-labour",         "name": { "pt-BR": "Dia do Trabalho", "en": "Labour Day", "es-LA": "Día del Trabajo" },
+      "month": 5, "day": 1 },
+    { "id": "ec-pichincha",      "name": { "pt-BR": "Batalha de Pichincha", "en": "Battle of Pichincha", "es-LA": "Batalla de Pichincha" },
+      "month": 5, "day": 24 },
+    { "id": "ec-primer-grito",   "name": { "pt-BR": "Primeiro Grito de Independência", "en": "First Cry of Independence", "es-LA": "Primer Grito de Independencia" },
+      "month": 8, "day": 10 },
+    { "id": "ec-independencia-gye","name": { "pt-BR": "Independência de Guayaquil", "en": "Independence of Guayaquil", "es-LA": "Independencia de Guayaquil" },
+      "month": 10, "day": 9 },
+    { "id": "ec-difuntos",       "name": { "pt-BR": "Dia de Finados", "en": "All Souls' Day", "es-LA": "Día de los Difuntos" },
+      "month": 11, "day": 2 },
+    { "id": "ec-independencia-cue","name": { "pt-BR": "Independência de Cuenca", "en": "Independence of Cuenca", "es-LA": "Independencia de Cuenca" },
+      "month": 11, "day": 3 },
+    { "id": "ec-christmas",      "name": { "pt-BR": "Natal", "en": "Christmas", "es-LA": "Navidad" },
+      "month": 12, "day": 25 }
+  ]
+}

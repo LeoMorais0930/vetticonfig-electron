@@ -1,0 +1,72 @@
+{
+  "schema": "vetticonfig-holidays-1",
+  "country": "BR",
+  "countryName": { "pt-BR": "Brasil", "en": "Brazil", "es-LA": "Brasil" },
+  "holidays": [
+    {
+      "id": "br-newyear",
+      "name": { "pt-BR": "Confraternização Universal", "en": "New Year's Day", "es-LA": "Año Nuevo" },
+      "month": 1, "day": 1
+    },
+    {
+      "id": "br-carnival-mon",
+      "name": { "pt-BR": "Carnaval (segunda)", "en": "Carnival Monday", "es-LA": "Carnaval (lunes)" },
+      "mobile": "easter-48"
+    },
+    {
+      "id": "br-carnival-tue",
+      "name": { "pt-BR": "Carnaval (terça)", "en": "Carnival Tuesday", "es-LA": "Carnaval (martes)" },
+      "mobile": "easter-47"
+    },
+    {
+      "id": "br-good-friday",
+      "name": { "pt-BR": "Sexta-feira Santa", "en": "Good Friday", "es-LA": "Viernes Santo" },
+      "mobile": "easter-2"
+    },
+    {
+      "id": "br-tiradentes",
+      "name": { "pt-BR": "Tiradentes", "en": "Tiradentes Day", "es-LA": "Día de Tiradentes" },
+      "month": 4, "day": 21
+    },
+    {
+      "id": "br-labour",
+      "name": { "pt-BR": "Dia do Trabalho", "en": "Labour Day", "es-LA": "Día del Trabajo" },
+      "month": 5, "day": 1
+    },
+    {
+      "id": "br-corpus-christi",
+      "name": { "pt-BR": "Corpus Christi", "en": "Corpus Christi", "es-LA": "Corpus Christi" },
+      "mobile": "easter+60"
+    },
+    {
+      "id": "br-independence",
+      "name": { "pt-BR": "Independência do Brasil", "en": "Independence Day", "es-LA": "Día de la Independencia" },
+      "month": 9, "day": 7
+    },
+    {
+      "id": "br-aparecida",
+      "name": { "pt-BR": "N. Sra. Aparecida", "en": "Our Lady Aparecida", "es-LA": "Ntra. Sra. Aparecida" },
+      "month": 10, "day": 12
+    },
+    {
+      "id": "br-allsouls",
+      "name": { "pt-BR": "Finados", "en": "All Souls' Day", "es-LA": "Día de los Difuntos" },
+      "month": 11, "day": 2
+    },
+    {
+      "id": "br-republic",
+      "name": { "pt-BR": "Proclamação da República", "en": "Republic Day", "es-LA": "Proclamación de la República" },
+      "month": 11, "day": 15
+    },
+    {
+      "id": "br-black-consciousness",
+      "name": { "pt-BR": "Consciência Negra", "en": "Black Awareness Day", "es-LA": "Día de la Conciencia Negra" },
+      "month": 11, "day": 20
+    },
+    {
+      "id": "br-christmas",
+      "name": { "pt-BR": "Natal", "en": "Christmas Day", "es-LA": "Navidad" },
+      "month": 12, "day": 25
+    }
+  ]
+}

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:;">
+  <title>VettiConfig — Status</title>
+  <link href="../vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <link href="../assets/fonts/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="../css/vetticonfig.css" rel="stylesheet">
+  <link rel="preload" href="../i18n/pt-BR.json" as="fetch" type="application/json" crossorigin>
+  <script src="../i18n/vetticonfig-i18n.js" defer></script>
+
+  <!-- Splash inline (mesma animação do hero do index) -->
+  <script>try{if(localStorage.getItem('vc_theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(_){}</script>
+  <style>
+    #vcSplash{position:fixed;inset:0;z-index:9999;background:#EEF0F3;display:flex;align-items:center;justify-content:center;transition:opacity .35s ease}
+    html[data-theme="dark"] #vcSplash{background:#131820}
+    #vcSplash.vc-splash-hidden{opacity:0;pointer-events:none}
+    #vcSplashMark{width:132px;height:132px;border-radius:50%;background:radial-gradient(circle at center,#0076CB 0%,#003A63 70%);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 0 0 8px rgba(0,118,203,.1),0 0 0 18px rgba(0,118,203,.05),0 12px 36px rgba(0,58,99,.25);animation:vcSplashBreathe 3.2s ease-in-out infinite}
+    #vcSplashMark::before,#vcSplashMark::after{content:'';position:absolute;inset:-8px;border-radius:50%;border:2px solid #0076CB;opacity:0;animation:vcSplashPulse 2.6s ease-out infinite}
+    #vcSplashMark::after{animation-delay:1.3s}
+    #vcSplashLogo{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-style:italic;font-weight:800;color:#fff;font-size:28px;letter-spacing:4px;line-height:1}
+    @keyframes vcSplashPulse{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.55);opacity:0}}
+    @keyframes vcSplashBreathe{0%,100%{box-shadow:0 0 0 8px rgba(0,118,203,.1),0 0 0 18px rgba(0,118,203,.05),0 12px 36px rgba(0,58,99,.25)}50%{box-shadow:0 0 0 8px rgba(0,118,203,.16),0 0 0 22px rgba(0,118,203,.08),0 12px 36px rgba(0,58,99,.25)}}
+  </style>
+</head>
+<body>
+
+<div id="vcSplash"><div id="vcSplashMark"><span id="vcSplashLogo">VETTI</span></div></div>
+
+<!-- ── Mobile helpers ───────────────────────────────────── -->
+<button class="vc-sidebar-toggler" onclick="vcToggleSidebar()"><i class="bi bi-list"></i></button>
+<div class="vc-overlay" id="vcOverlay" onclick="vcToggleSidebar()"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     SIDEBAR
+     ══════════════════════════════════════════════════════ -->
+<nav class="vc-sidebar" id="vcSidebar">
+  <div class="vc-logo">
+    <div class="vc-logo-text">VETTI</div>
+    <div class="vc-logo-line"></div>
+  </div>
+
+  <ul class="vc-nav" id="vcSidebarNav"></ul>
+
+  <div class="vc-sidebar-bottom">
+    <a class="vc-nav-link" href="configuracoes.html">
+      <span class="vc-nav-icon"><i class="bi bi-gear-fill"></i></span>
+      <span data-i18n="nav.configuracoes">Configurações</span>
+    </a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════
+     MAIN
+     ══════════════════════════════════════════════════════ -->
+<div class="vc-main">
+
+  <!-- Topbar -->
+  <div class="vc-topbar d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <button class="vc-btn-conn" id="vcBtnDesconectar"
+            data-i18n-title="status.desconectar_tooltip"
+            title="Encerra a sessão e volta para a tela inicial.">
+      <i class="bi bi-plug"></i>
+      <span data-i18n="status.desconectar">Desconectar</span>
+    </button>
+    <button class="vc-btn-pdf" id="vcBtnPdf"
+            data-i18n-title="status.pdf_tooltip"
+            title="Gera relatório PDF/CSV">
+      <i class="bi bi-file-earmark-pdf"></i>
+    </button>
+  </div>
+
+  <!-- Header -->
+  <div class="vc-header">
+    <div class="row align-items-end g-2">
+      <div class="col-lg-8 col-md-7">
+        <div class="vc-central-name" id="vcCentralName">---</div>
+        <div class="vc-central-model" id="vcCentralModel">---</div>
+      </div>
+      <div class="col-lg-4 col-md-5">
+        <div class="vc-central-ip"  id="vcCentralIp">IP: ---</div>
+        <div class="vc-central-mac" id="vcCentralMac">MAC: ---</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conteúdo -->
+  <div class="container-fluid px-3 pb-3 flex-grow-1 vc-status-content">
+    <div class="row g-3 vc-status-main-row">
+
+      <!-- ── Coluna esquerda ──────────────────────────── -->
+      <div class="col-xxl-5 col-xl-6 d-flex flex-column gap-3 vc-status-left-col">
+
+        <!-- Partições -->
+        <div class="vc-card">
+          <div class="vc-card-header">
+            <span data-i18n="status.particoes">Partições</span>
+            <button class="vc-card-refresh-btn" type="button" id="vcRefreshPartitions"
+                    aria-label="Atualizar partições" title="Atualizar partições">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+          </div>
+          <div class="vc-card-body vc-partitions-body">
+            <div class="vc-partitions-layout">
+              <div class="vc-partitions-grid">
+
+                  <!-- P1..P6 — cards populados/atualizados via vcSetPartition() -->
+                  <div>
+                    <div class="vc-part-card unused" id="vcPartCard1" data-part="1">
+                      <div class="vc-part-name" data-i18n="status.particao_n" data-i18n-n="1">Partição 1</div>
+                      <div class="vc-part-icon"><i class="bi bi-house"></i></div>
+                      <div class="vc-part-status nao-utilizada" id="vcPart1Status" data-i18n="common.not_used">Não utilizada</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="vc-part-card unused" id="vcPartCard2" data-part="2">
+                      <div class="vc-part-name" data-i18n="status.particao_n" data-i18n-n="2">Partição 2</div>
+                      <div class="vc-part-icon"><i class="bi bi-house"></i></div>
+                      <div class="vc-part-status nao-utilizada" id="vcPart2Status" data-i18n="common.not_used">Não utilizada</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="vc-part-card unused" id="vcPartCard3" data-part="3">
+                      <div class="vc-part-name" data-i18n="status.particao_n" data-i18n-n="3">Partição 3</div>
+                      <div class="vc-part-icon"><i class="bi bi-house"></i></div>
+                      <div class="vc-part-status nao-utilizada" id="vcPart3Status" data-i18n="common.not_used">Não utilizada</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="vc-part-card unused" id="vcPartCard4" data-part="4">
+                      <div class="vc-part-name" data-i18n="status.particao_n" data-i18n-n="4">Partição 4</div>
+                      <div class="vc-part-icon"><i class="bi bi-house"></i></div>
+                      <div class="vc-part-status nao-utilizada" id="vcPart4Status" data-i18n="common.not_used">Não utilizada</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="vc-part-card unused" id="vcPartCard5" data-part="5">
+                      <div class="vc-part-name" data-i18n="status.particao_n" data-i18n-n="5">Partição 5</div>
+                      <div class="vc-part-icon"><i class="bi bi-house"></i></div>
+                      <div class="vc-part-status nao-utilizada" id="vcPart5Status" data-i18n="common.not_used">Não utilizada</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="vc-part-card unused" id="vcPartCard6" data-part="6">
+                      <div class="vc-part-name" data-i18n="status.particao_n" data-i18n-n="6">Partição 6</div>
+                      <div class="vc-part-icon"><i class="bi bi-house"></i></div>
+                      <div class="vc-part-status nao-utilizada" id="vcPart6Status" data-i18n="common.not_used">Não utilizada</div>
+                    </div>
+                  </div>
+
+              </div>
+
+              <!-- Botões Arme/Stay/Desarme/Pânico -->
+              <div class="vc-partition-actions">
+                <button class="vc-action-btn" id="vcBtnArme" aria-label="Arme Total">
+                  <img class="vc-action-icon" src="../assets/icons/status/botao-arm-total.svg" alt="" aria-hidden="true">
+                </button>
+                <button class="vc-action-btn" id="vcBtnStay" aria-label="Arme Stay">
+                  <img class="vc-action-icon" src="../assets/icons/status/botao-arm-stay.svg" alt="" aria-hidden="true">
+                </button>
+                <button class="vc-action-btn" id="vcBtnDesarme" aria-label="Desarme">
+                  <img class="vc-action-icon" src="../assets/icons/status/botao-disarm.svg" alt="" aria-hidden="true">
+                </button>
+                <button class="vc-action-btn" id="vcBtnPanico" aria-label="Pânico">
+                  <img class="vc-action-icon" src="../assets/icons/status/botao-panic.svg" alt="" aria-hidden="true">
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Status boxes -->
+        <div class="row g-2">
+          <div class="col-6 col-sm-3">
+            <div class="vc-status-box">
+              <div class="lbl" data-i18n="status.tensao_fonte">Tensão fonte</div>
+              <div class="val" id="vcTensaoFonte">---</div>
+            </div>
+          </div>
+          <div class="col-6 col-sm-3">
+            <div class="vc-status-box">
+              <div class="lbl" data-i18n="status.tensao_bateria">Tensão bateria</div>
+              <div class="val" id="vcTensaoBateria">---</div>
+            </div>
+          </div>
+          <div class="col-6 col-sm-3">
+            <div class="vc-status-box">
+              <div class="lbl" data-i18n="status.tamper_central">Tamper central</div>
+              <div class="val" id="vcTamperCentral">---</div>
+            </div>
+          </div>
+          <div class="col-6 col-sm-3">
+            <div class="vc-status-box">
+              <div class="lbl" data-i18n="status.sirene_fio">Sirene com fio</div>
+              <div class="val" id="vcSireneFio">---</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Painel de alarme (data/hora) -->
+        <div class="vc-card">
+          <div class="vc-card-header">
+            <span data-i18n="status.painel_alarme">Painel de alarme</span>
+            <button class="vc-card-refresh-btn" type="button" id="vcRefreshAlarmClock"
+                    aria-label="Atualizar data e hora" title="Atualizar data e hora">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+          </div>
+          <div class="vc-card-body">
+            <div class="vc-alarm-row">
+              <div class="vc-alarm-group">
+                <span class="vc-alarm-lbl" data-i18n="status.data">Data</span>
+                <span class="vc-alarm-val" id="vcAlarmDate">---</span>
+              </div>
+              <div class="vc-alarm-group">
+                <span class="vc-alarm-lbl" data-i18n="status.hora">Hora</span>
+                <span class="vc-alarm-val" id="vcAlarmTime">---</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conexão com servidor -->
+        <div class="vc-card vc-status-server-card">
+          <div class="vc-card-header">
+            <span data-i18n="status.conexao_servidor">Conexão com servidor</span>
+            <button class="vc-card-refresh-btn" type="button" id="vcRefreshServerConn"
+                    aria-label="Atualizar conexão com servidor" title="Atualizar conexão com servidor">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+          </div>
+          <div class="vc-card-body">
+            <div class="vc-server-panel">
+              <div class="vc-server-top">
+                <div class="vc-server-box">
+                  <span class="vc-server-title" data-i18n="status.servidor_1">Servidor 1:</span>
+                  <span class="vc-server-val" id="vcServerStatus">---</span>
+                </div>
+                <div class="vc-server-box">
+                  <span class="vc-server-title" data-i18n="status.servidor_2">Servidor 2:</span>
+                  <span class="vc-server-val" id="vcServerStatus2">---</span>
+                </div>
+              </div>
+              <div class="vc-server-divider"></div>
+              <div class="vc-server-bottom">
+                <div class="vc-server-channel-labels">
+                  <span>Ethernet:</span>
+                  <span>GPRS:</span>
+                  <span>WiFi:</span>
+                </div>
+                <div class="vc-server-channel-values">
+                  <span id="vcServerEthernet">---</span>
+                  <span id="vcServerGprs">---</span>
+                  <span id="vcServerWifi">---</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /coluna esquerda -->
+
+      <!-- ── Coluna direita — Scan ────────────────────── -->
+      <div class="col-xxl-7 col-xl-6 d-flex flex-column">
+        <div class="vc-scan-panel vc-card flex-grow-1" style="border-radius:10px;">
+          <div class="vc-scan-header d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+              <span data-i18n="scan.title">Scan</span>
+            </div>
+            <div class="vc-scan-toolbar d-flex align-items-center gap-2">
+              <span data-i18n="scan.detalhado">Detalhado</span>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input vc-toggle" type="checkbox" id="vcToggleScan" checked>
+              </div>
+              <button class="btn btn-sm text-white p-0" id="vcBtnFilter"
+                      data-i18n-title="common.filter" title="Filtrar">
+                <i class="bi bi-funnel-fill" style="font-size:18px;"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="vc-scan-body" id="vcDeviceList">
+            <!-- Devices populados dinamicamente via vcAddDevice() -->
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /row -->
+
+    <!-- Logger full-width -->
+    <div class="row g-3 mt-1" data-vc-page-logger>
+      <div class="col-12">
+        <div class="vc-card">
+          <div class="vc-logger-header"
+               data-i18n-title="modal.logger_tooltip"
+               title="Exibe a comunicação entre o VettiConfig, servidor e a central.">
+            <span data-i18n="modal.logger">Logger</span>
+            <button class="btn btn-sm text-white p-0" onclick="vcClearLog()"
+                    data-i18n-title="modal.clear_log" title="Limpar logger">
+              <i class="bi bi-trash3" style="font-size:15px;"></i>
+            </button>
+          </div>
+          <div class="vc-logger-body" id="vcLoggerBody"
+               style="max-height:240px;overflow:auto;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Rodapé Brasil unificado -->
+  <div class="vc-app-footer">
+    <svg viewBox="0 0 24 16" width="22" height="14" aria-hidden="true">
+      <rect width="24" height="16" fill="#009C3B"/>
+      <polygon points="12,2 22,8 12,14 2,8" fill="#FFDF00"/>
+      <circle cx="12" cy="8" r="3.2" fill="#002776"/>
+    </svg>
+    <span data-i18n="configs.feito_brasil">Desenvolvido e Produzido no Brasil</span>
+  </div>
+</div><!-- /vc-main -->
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL FILTRO DE SENSORES
+     ══════════════════════════════════════════════════════ -->
+<div class="vc-info-backdrop" id="vcFilterBackdrop">
+  <div class="vc-info-dialog" role="dialog" aria-modal="true" aria-labelledby="vcFilterTitle" style="width:min(420px,100%);">
+    <div class="vc-info-header" id="vcFilterTitle" data-i18n="scan.filter_title">Filtro de sensores</div>
+    <div class="vc-info-body" style="text-align:left;padding:18px 22px;">
+      <div class="vc-filter-list">
+        <div class="vc-filter-mode">
+          <span data-i18n="scan.filter_title">Filtro de sensores</span>
+          <select id="vcFilterMode" aria-label="Filtro de sensores">
+            <option value="all" data-i18n="common.all">Todos</option>
+            <option value="type_opening">Abertura</option>
+            <option value="type_pgm">PGM</option>
+            <option value="type_presence_internal">Presença interno</option>
+            <option value="type_presence_external">Presença externo</option>
+            <option value="type_shox">Shox</option>
+            <option value="type_siren">Sirene sem fio</option>
+            <option value="type_remote">Controle</option>
+            <option value="type_keyboard">Teclado</option>
+            <option value="type_transmitter">Transmissor</option>
+            <option value="type_panic">Botão pânico</option>
+          </select>
+        </div>
+        <hr class="my-1" style="opacity:.2;">
+        <div class="vc-filter-group" data-filter-group="status">
+          <label><input type="checkbox" value="signal_low">    <img class="vc-filter-icon" src="../assets/icons/scan/rssi-0.svg" alt="" aria-hidden="true"> <span data-i18n="scan.filter_signal_low">Nível de Sinal Baixo</span></label>
+          <label><input type="checkbox" value="signal_med">    <img class="vc-filter-icon" src="../assets/icons/scan/rssi-2.svg" alt="" aria-hidden="true"> <span data-i18n="scan.filter_signal_med">Nível de Sinal Médio</span></label>
+          <label><input type="checkbox" value="signal_high">   <img class="vc-filter-icon" src="../assets/icons/scan/rssi-4.svg" alt="" aria-hidden="true"> <span data-i18n="scan.filter_signal_high">Nível de Sinal Alto</span></label>
+          <label><input type="checkbox" value="tamper">        <img class="vc-filter-icon" src="../assets/icons/scan/tamper-violado.svg" alt="" aria-hidden="true"> <span data-i18n="scan.filter_tamper">Tamper Violado</span></label>
+          <label><input type="checkbox" value="battery_low">   <img class="vc-filter-icon" src="../assets/icons/scan/bateria-baixa.svg" alt="" aria-hidden="true"> <span data-i18n="scan.filter_battery_low">Bateria Baixa</span></label>
+          <label><input type="checkbox" value="absent">        <i class="bi bi-question-circle"></i> <span data-i18n="scan.filter_absent">Ausente</span></label>
+          <label><input type="checkbox" value="inhibited">     <i class="bi bi-eye-slash"></i> <span data-i18n="scan.filter_inhibited">Inibido</span></label>
+          <label><input type="checkbox" value="open">          <img class="vc-filter-icon" src="../assets/icons/scan/porta-aberta.svg" alt="" aria-hidden="true"> <span data-i18n="scan.filter_open">Aberto</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="vc-info-footer" style="gap:8px;">
+      <button class="vc-btn" type="button" onclick="vcCloseFilter()" style="background:transparent;color:var(--vc-blue);border:1px solid var(--vc-blue);">
+        <span data-i18n="common.cancel">Cancelar</span>
+      </button>
+      <button class="vc-btn" type="button" onclick="vcApplyFilter()">
+        <span data-i18n="common.apply">Aplicar</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL INFORMATIVO (genérico)
+     ══════════════════════════════════════════════════════ -->
+<div class="vc-info-backdrop" id="vcInfoBackdrop">
+  <div class="vc-info-dialog" role="dialog" aria-modal="true" aria-labelledby="vcInfoTitle">
+    <div class="vc-info-header" id="vcInfoTitle" data-i18n="common.info">Informativo</div>
+    <div class="vc-info-body"   id="vcInfoBody">---</div>
+    <div class="vc-info-footer">
+      <button class="vc-btn" type="button" onclick="vcCloseInfo()">
+        <span data-i18n="common.ok">Ok</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="../vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="../js/vetticonfig.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof vcRenderFullSidebar === 'function') vcRenderFullSidebar('status');
+    var t0 = Date.now();
+    VCi18n.init(function () {
+      if (typeof vcStatusInit === 'function') vcStatusInit();
+      var elapsed = Date.now() - t0;
+      setTimeout(vcHideSplash, Math.max(0, 350 - elapsed));
+    });
+    setTimeout(vcHideSplash, 3000);
+  });
+</script>
+
+</body>
+</html>
